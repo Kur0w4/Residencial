@@ -13,12 +13,12 @@ const TOWERS_CONFIG = [
   {
     id: 'Bloque A',
     displayName: 'Torre A',
-    mapCoords: { x: 28, y: 21 },
+    mapCoords: { x: 28, y: 25 },
   },
   {
     id: 'Bloque B',
     displayName: 'Torre B',
-    mapCoords: { x: 50, y: 16 },
+    mapCoords: { x: 50, y: 20 },
   },
   {
     id: 'Bloque C',
@@ -410,23 +410,6 @@ export default function ResidentialMap({ onSelectTower, onSelectApartment }: Res
                         />
                         <div className={`relative h-2 w-2 rounded-full ${pinColor} transition-transform duration-200 group-hover:scale-125`} />
                       </div>
-
-                      {/* Hover Label showing tower name next to dot */}
-                      <AnimatePresence>
-                        {isHovered && (
-                          <motion.div
-                            initial={{ opacity: 0, x: -4 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -4 }}
-                            transition={{ duration: 0.15 }}
-                            className="bg-slate-950/85 backdrop-blur-sm text-white px-2 py-0.5 rounded-none border border-white/10 shadow-sm pointer-events-none"
-                          >
-                            <span className="font-sans text-[10px] font-bold tracking-wider uppercase whitespace-nowrap">
-                              {tower.displayName}
-                            </span>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
                     </div>
                   </foreignObject>
                 );
