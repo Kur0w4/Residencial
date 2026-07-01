@@ -13,17 +13,17 @@ const TOWERS_CONFIG = [
   {
     id: 'Bloque A',
     displayName: 'Torre A',
-    mapCoords: { x: 28, y: 48 },
+    mapCoords: { x: 28, y: 21 },
   },
   {
     id: 'Bloque B',
     displayName: 'Torre B',
-    mapCoords: { x: 50, y: 42.5 },
+    mapCoords: { x: 50, y: 16 },
   },
   {
     id: 'Bloque C',
     displayName: 'Torre C',
-    mapCoords: { x: 72, y: 54.5 },
+    mapCoords: { x: 72, y: 29 },
   },
 ];
 
@@ -321,21 +321,22 @@ export default function ResidentialMap({ onSelectTower, onSelectApartment }: Res
                 if (!apt.polygonPoints) return null;
 
                 // Color of polygon based on status & hover
-                let polyFill = 'rgba(255, 255, 255, 0.02)';
-                let polyStroke = 'rgba(255, 255, 255, 0.2)';
-                let strokeWidth = '1';
+                let polyFill = 'transparent';
+                let polyStroke = 'transparent';
+                let strokeWidth = '0';
 
                 if (isAptHovered) {
-                  polyStroke = apt.status === 'disponible' ? '#10b981' : apt.status === 'reservado' ? '#f59e0b' : '#a8a29e';
-                  polyFill = apt.status === 'disponible' ? 'rgba(16, 185, 129, 0.3)' : apt.status === 'reservado' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(120, 113, 108, 0.3)';
-                  strokeWidth = '2';
+                  polyStroke = 'transparent';
+                  polyFill = apt.status === 'disponible' ? 'rgba(16, 185, 129, 0.2)' : apt.status === 'reservado' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(120, 113, 108, 0.2)';
+                  strokeWidth = '0';
                 } else if (isTowerHovered) {
-                  polyStroke = 'rgba(255, 255, 255, 0.6)';
-                  polyFill = 'rgba(255, 255, 255, 0.1)';
-                  strokeWidth = '1.5';
+                  polyStroke = 'transparent';
+                  polyFill = 'rgba(255, 255, 255, 0.08)';
+                  strokeWidth = '0';
                 } else if (!isFiltered) {
-                  polyFill = 'rgba(0, 0, 0, 0.4)'; // dim down non-filtered apartments
-                  polyStroke = 'rgba(0, 0, 0, 0.1)';
+                  polyFill = 'rgba(0, 0, 0, 0.45)'; // dim down non-filtered apartments
+                  polyStroke = 'transparent';
+                  strokeWidth = '0';
                 }
 
                 return (
@@ -376,44 +377,56 @@ export default function ResidentialMap({ onSelectTower, onSelectApartment }: Res
                   towerStatus = 'vendido';
                 }
 
-                const pinColor = towerStatus === 'disponible' ? 'bg-emerald-500' : towerStatus === 'reservado' ? 'bg-amber-500' : 'bg-stone-500';
-                const ringColor = towerStatus === 'disponible' ? 'border-emerald-300' : towerStatus === 'reservado' ? 'border-amber-300' : 'border-stone-300';
+                                const pinColor = towerStatus === 'disponible' ? 'bg-emerald-500' : towerStatus === 'reservado' ? 'bg-amber-500' : 'bg-stone-500';
 
                 return (
                   <foreignObject
                     key={`pin-fo-${tower.id}`}
-                    x={`${tower.mapCoords.x - 1.75}%`}
-                    y={`${tower.mapCoords.y - 1.75}%`}
-                    width="3.5%"
-                    height="3.5%"
+                    x={`${tower.mapCoords.x - 0.6}%`}
+                    y={`${tower.mapCoords.y - 1.5}%`}
+                    width="25%"
+                    height="3%"
                     className="overflow-visible pointer-events-none"
                   >
                     <div 
-                      className="w-full h-full flex items-center justify-center cursor-pointer pointer-events-auto"
+                      className="flex items-center gap-2 cursor-pointer pointer-events-auto group h-full"
                       onMouseEnter={() => setHoveredTowerId(tower.id)}
                       onMouseLeave={() => setHoveredTowerId(null)}
                       onClick={() => onSelectTower(tower.id)}
                     >
-                      {/* Pulse effect on hover */}
-                      <div className="relative flex items-center justify-center">
-                        <AnimatePresence>
-                          {isHovered && (
-                            <motion.span
-                              initial={{ scale: 0.8, opacity: 0.8 }}
-                              animate={{ scale: 2.2, opacity: 0 }}
-                              exit={{ opacity: 0 }}
-                              transition={{ repeat: Infinity, duration: 1.5, ease: "easeOut" }}
-                              className={`absolute inline-flex h-4 w-4 rounded-full opacity-75 ${pinColor}`}
-                            />
-                          )}
-                        </AnimatePresence>
-                        
-                        {/* Dot container (smaller) */}
-                        <div className={`relative flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white shadow-lg border-2 ${ringColor} transition-transform duration-300 ${isHovered ? 'scale-125' : 'scale-100'}`}>
-                          {/* Inner color center */}
-                          <div className={`h-1.5 w-1.5 rounded-full ${pinColor}`} />
-                        </div>
+                      {/* Minimalist dot with tight color-coded pulse (no white ring) */}
+                      <div className="relative flex items-center justify-center h-3 w-3 shrink-0">
+                        <motion.span
+                          animate={{
+                            scale: [1, 1.3, 1],
+                            opacity: [0.6, 0.1, 0.6]
+                          }}
+                          transition={{
+                            repeat: Infinity,
+                            duration: 2,
+                            ease: "easeInOut"
+                          }}
+                          className={`absolute inline-flex h-full w-full rounded-full ${pinColor}`}
+                        />
+                        <div className={`relative h-2 w-2 rounded-full ${pinColor} transition-transform duration-200 group-hover:scale-125`} />
                       </div>
+
+                      {/* Hover Label showing tower name next to dot */}
+                      <AnimatePresence>
+                        {isHovered && (
+                          <motion.div
+                            initial={{ opacity: 0, x: -4 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -4 }}
+                            transition={{ duration: 0.15 }}
+                            className="bg-slate-950/85 backdrop-blur-sm text-white px-2 py-0.5 rounded-none border border-white/10 shadow-sm pointer-events-none"
+                          >
+                            <span className="font-sans text-[10px] font-bold tracking-wider uppercase whitespace-nowrap">
+                              {tower.displayName}
+                            </span>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </foreignObject>
                 );
