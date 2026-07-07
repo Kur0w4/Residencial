@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, Expand, Layers, Sparkles, MapPin, DollarSign, ArrowUpRight, ShieldCheck, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Expand, Layers, Sparkles, ArrowUpRight } from 'lucide-react';
 import { Apartment, ApartmentStatus } from '../types';
 import { APARTMENTS } from '../data';
+import { formatPrice, getStatusColorClass, getStatusTextTranslation } from '../utils/helpers';
 
 interface TowerElevationViewProps {
   towerId: string; // e.g. 'Bloque A', 'Bloque B', 'Bloque C'
@@ -11,45 +11,22 @@ interface TowerElevationViewProps {
 }
 
 export default function TowerElevationView({ towerId, onBackToMap, onSelectApartment }: TowerElevationViewProps) {
+  // --- Estados de Interacción ---
   const [hoveredAptId, setHoveredAptId] = useState<string | null>(null);
 
-  // Filter apartments belonging to this tower
+  // Filtrado de apartamentos pertenecientes a esta torre específica
   const towerApartments = APARTMENTS.filter((apt) => apt.name.includes(towerId));
 
-  // Determine displayName
+  // Nombre legible de la torre según el identificador de bloque
   const towerName = towerId === 'Bloque A' ? 'Torre A' : towerId === 'Bloque B' ? 'Torre B' : 'Torre C';
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
-
-  const getStatusColor = (status: ApartmentStatus) => {
-    switch (status) {
-      case 'disponible':
-        return 'bg-emerald-500 border-emerald-200';
-      case 'reservado':
-        return 'bg-amber-500 border-amber-200';
-      case 'vendido':
-        return 'bg-stone-400 border-stone-200';
-    }
-  };
-
-  const getStatusText = (status: ApartmentStatus) => {
-    switch (status) {
-      case 'disponible':
-        return 'Disponible';
-      case 'reservado':
-        return 'Reservado';
-      case 'vendido':
-        return 'No disponible';
-    }
-  };
-
   const hoveredApt = towerApartments.find(a => a.id === hoveredAptId);
+
+  /**
+   * Toca/hace clic sobre un nivel en la fachada: lo selecciona para previsualizar.
+   * La acción de navegar al plano se hace desde el botón "Ver Distribución Completa".
+   */
+  const handleAptClick = (apt: Apartment) => setHoveredAptId(apt.id);
 
   // Render the SVG architectural elevation based on the tower
   const renderTowerSVG = () => {
@@ -154,7 +131,7 @@ export default function TowerElevationView({ towerId, onBackToMap, onSelectApart
               className="cursor-pointer"
               onMouseEnter={() => setHoveredAptId(apt1.id)}
               onMouseLeave={() => setHoveredAptId(null)}
-              onClick={() => onSelectApartment(apt1)}
+              onClick={() => handleAptClick(apt1)}
             >
               {/* Floor highlight backdrop on hover */}
               <rect 
@@ -200,7 +177,7 @@ export default function TowerElevationView({ towerId, onBackToMap, onSelectApart
               className="cursor-pointer"
               onMouseEnter={() => setHoveredAptId(apt2.id)}
               onMouseLeave={() => setHoveredAptId(null)}
-              onClick={() => onSelectApartment(apt2)}
+              onClick={() => handleAptClick(apt2)}
             >
               {/* Floor highlight backdrop on hover */}
               <rect 
@@ -297,7 +274,7 @@ export default function TowerElevationView({ towerId, onBackToMap, onSelectApart
               className="cursor-pointer"
               onMouseEnter={() => setHoveredAptId(apt1.id)}
               onMouseLeave={() => setHoveredAptId(null)}
-              onClick={() => onSelectApartment(apt1)}
+              onClick={() => handleAptClick(apt1)}
             >
               {/* Floor highlight backdrop on hover */}
               <rect 
@@ -339,7 +316,7 @@ export default function TowerElevationView({ towerId, onBackToMap, onSelectApart
               className="cursor-pointer"
               onMouseEnter={() => setHoveredAptId(apt3.id)}
               onMouseLeave={() => setHoveredAptId(null)}
-              onClick={() => onSelectApartment(apt3)}
+              onClick={() => handleAptClick(apt3)}
             >
               {/* Floor highlight backdrop on hover */}
               <rect 
@@ -424,19 +401,18 @@ export default function TowerElevationView({ towerId, onBackToMap, onSelectApart
             {renderTowerSVG()}
           </div>
 
+          {/* Leyenda de estados: disponible/reservado/no disponible */}
           <div className="flex justify-center gap-6 font-mono text-[10px] text-slate-500 pt-2">
-            <div className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              <span>Disponible</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-amber-500" />
-              <span>Reservado</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-slate-400" />
-              <span>No disponible</span>
-            </div>
+            {([
+              { color: 'bg-emerald-500', label: 'Disponible' },
+              { color: 'bg-amber-500',   label: 'Reservado' },
+              { color: 'bg-slate-400',   label: 'No disponible' },
+            ] as { color: string; label: string }[]).map(({ color, label }) => (
+              <div key={label} className="flex items-center gap-1.5">
+                <span className={`h-2 w-2 rounded-full ${color}`} />
+                <span>{label}</span>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -481,9 +457,9 @@ export default function TowerElevationView({ towerId, onBackToMap, onSelectApart
                     <span className="font-sans text-xl font-bold text-emerald-400">{formatPrice(hoveredApt.price)} USD</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`h-2.5 w-2.5 rounded-full ${getStatusColor(hoveredApt.status).split(' ')[0]}`} />
+                    <span className={`h-2.5 w-2.5 rounded-full ${getStatusColorClass(hoveredApt.status).split(' ')[0]}`} />
                     <span className="font-mono text-xs text-slate-300 uppercase tracking-wider font-semibold">
-                      {getStatusText(hoveredApt.status)}
+                      {getStatusTextTranslation(hoveredApt.status)}
                     </span>
                   </div>
                 </div>
@@ -494,9 +470,9 @@ export default function TowerElevationView({ towerId, onBackToMap, onSelectApart
                   <Sparkles className="h-5 w-5" />
                 </div>
                 <div className="space-y-1">
-                  <h4 className="font-sans text-sm font-bold text-white">Selecciona o Pasa el Cursor</h4>
+                  <h4 className="font-sans text-sm font-bold text-white">Selecciona un Nivel</h4>
                   <p className="font-sans text-xs text-slate-400 font-light max-w-xs">
-                    Coloca el mouse sobre los niveles de la fachada para ver la información técnica de cada apartamento.
+                    Toca o pasa el cursor sobre los niveles de la fachada para ver su ficha técnica.
                   </p>
                 </div>
               </div>
@@ -527,7 +503,7 @@ export default function TowerElevationView({ towerId, onBackToMap, onSelectApart
                     key={apt.id}
                     onMouseEnter={() => setHoveredAptId(apt.id)}
                     onMouseLeave={() => setHoveredAptId(null)}
-                    onClick={() => onSelectApartment(apt)}
+                    onClick={() => handleAptClick(apt)}
                     className={`group bg-white border p-4 cursor-pointer transition-all duration-300 flex items-center justify-between gap-4 rounded-none ${
                       isHovered ? 'border-slate-900 shadow-md ring-1 ring-slate-900' : 'border-slate-200/80 shadow-sm'
                     }`}
@@ -547,8 +523,8 @@ export default function TowerElevationView({ towerId, onBackToMap, onSelectApart
                         {formatPrice(apt.price)}
                       </span>
                       <div className="flex items-center gap-1.5 justify-end">
-                        <span className={`h-1.5 w-1.5 rounded-full ${getStatusColor(apt.status).split(' ')[0]}`} />
-                        <span className="font-mono text-[8px] text-slate-400 uppercase tracking-wider">{getStatusText(apt.status)}</span>
+                        <span className={`h-1.5 w-1.5 rounded-full ${getStatusColorClass(apt.status).split(' ')[0]}`} />
+                        <span className="font-mono text-[8px] text-slate-400 uppercase tracking-wider">{getStatusTextTranslation(apt.status)}</span>
                       </div>
                     </div>
                   </div>

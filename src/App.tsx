@@ -1,62 +1,59 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  Trees, Waves, Dumbbell, ShieldCheck, HelpCircle,
-  MapPin, Phone, Mail, Award, Key, Sparkles, Compass
+  Trees, Waves, Dumbbell, ShieldCheck,
+  Award, Key, Compass
 } from 'lucide-react';
 import { Apartment, Hotspot } from './types';
-import { APARTMENTS } from './data';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import ResidentialMap from './components/ResidentialMap';
 import TowerElevationView from './components/TowerElevationView';
 import FloorPlanView from './components/FloorPlanView';
 import RoomPhotoModal from './components/RoomPhotoModal';
+import { getTowerFromApartmentName, scrollToInteractiveContainer } from './utils/helpers';
 
 export default function App() {
+  // --- Estados de Navegación Interactiva ---
   const [selectedTower, setSelectedTower] = useState<string | null>(null);
   const [selectedApartment, setSelectedApartment] = useState<Apartment | null>(null);
   const [activeRoomPhoto, setActiveRoomPhoto] = useState<Hotspot | null>(null);
 
+  /**
+   * Selecciona una torre y desplaza suavemente la pantalla al contenedor interactivo.
+   */
   const handleSelectTower = (towerId: string) => {
     setSelectedTower(towerId);
-    // Scroll smoothly to interactive container
-    const element = document.getElementById('main-interactive-container');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+    scrollToInteractiveContainer();
   };
 
+  /**
+   * Selecciona un apartamento específico, determina su torre y se desplaza al contenedor interactivo.
+   */
   const handleSelectApartment = (apt: Apartment) => {
     setSelectedApartment(apt);
-    const blockId = apt.name.split(' - ')[1] || 'Bloque A';
+    const blockId = getTowerFromApartmentName(apt.name);
     setSelectedTower(blockId);
-    // Scroll smoothly to interactive container
-    const element = document.getElementById('main-interactive-container');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+    scrollToInteractiveContainer();
   };
 
+  /**
+   * Regresa a la vista de elevación de la torre.
+   */
   const handleBackToTower = () => {
     setSelectedApartment(null);
     setActiveRoomPhoto(null);
-    // Scroll back to interactive section
-    const element = document.getElementById('main-interactive-container');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+    scrollToInteractiveContainer();
   };
 
+  /**
+   * Regresa al mapa residencial general.
+   */
   const handleBackToMap = () => {
     setSelectedApartment(null);
     setSelectedTower(null);
     setActiveRoomPhoto(null);
-    // Scroll back to interactive section
-    const element = document.getElementById('main-interactive-container');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+    scrollToInteractiveContainer();
   };
 
   const handleOpenRoom = (hotspot: Hotspot) => {

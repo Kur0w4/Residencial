@@ -33,8 +33,17 @@ export default function RoomPhotoModal({ hotspot, allHotspots, onClose, onNaviga
       {/* Main interactive window container */}
       <div className="relative w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-none overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[90vh]">
         
+        {/* Close button for entire modal (placed sticky at top-right of container) */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-30 h-10 w-10 bg-slate-950/70 border border-white/10 text-white flex items-center justify-center transition-all hover:bg-white hover:text-slate-950 cursor-pointer rounded-none"
+          aria-label="Cerrar modal"
+        >
+          <X className="h-5 w-5" />
+        </button>
+
         {/* Left column / Image viewer (Takes 70% width on large screens) */}
-        <div className="relative flex-1 bg-slate-950 flex items-center justify-center overflow-hidden min-h-[300px] md:min-h-[450px]">
+        <div className="relative flex-1 bg-slate-950 flex items-center justify-center overflow-hidden h-[45vh] md:h-auto md:min-h-[450px]">
           
           {/* Main Room Image with scale transitions */}
           <motion.img
@@ -45,7 +54,7 @@ export default function RoomPhotoModal({ hotspot, allHotspots, onClose, onNaviga
             src={hotspot.imageSrc}
             alt={hotspot.name}
             referrerPolicy="no-referrer"
-            className="w-full h-full object-cover aspect-[4/3] max-h-[70vh]"
+            className="w-full h-full object-cover max-h-full"
           />
 
           {/* HUD overlay for room status/photography label */}
@@ -92,24 +101,13 @@ export default function RoomPhotoModal({ hotspot, allHotspots, onClose, onNaviga
         </div>
 
         {/* Right column / Specs & Description details (Takes 30% width) */}
-        <div className="w-full md:w-[320px] p-6 bg-slate-900 text-slate-200 flex flex-col justify-between border-t md:border-t-0 md:border-l border-slate-800 max-h-[40vh] md:max-h-none overflow-y-auto">
+        <div className="w-full md:w-[320px] p-6 bg-slate-900 text-slate-200 flex flex-col justify-between border-t md:border-t-0 md:border-l border-slate-800 flex-1 md:flex-initial overflow-y-auto">
           
           <div className="space-y-4">
-            <div className="flex justify-between items-start gap-3">
-              <div>
-                <span className="font-mono text-[9px] text-slate-400 tracking-widest uppercase block font-semibold">Espacio Interior</span>
-                <h3 className="font-sans text-xl font-semibold tracking-tight text-white mt-1 uppercase">
-                  {hotspot.name}
-                </h3>
-              </div>
-              <button
-                onClick={onClose}
-                className="h-8 w-8 rounded-none bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-all shrink-0 cursor-pointer"
-                aria-label="Cerrar modal"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
+            <span className="font-mono text-[9px] text-slate-400 tracking-widest uppercase block font-semibold">Espacio Interior</span>
+            <h3 className="font-sans text-xl font-semibold tracking-tight text-white uppercase">
+              {hotspot.name}
+            </h3>
 
             <div className="h-[1px] bg-slate-800 w-full"></div>
 

@@ -1,14 +1,21 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, SlidersHorizontal, MapPin, DollarSign, Layers, Expand, Sparkles } from 'lucide-react';
+import { Search, SlidersHorizontal, MapPin, Layers, Expand, Sparkles } from 'lucide-react';
 import { Apartment, ApartmentStatus } from '../types';
 import { APARTMENTS, RESIDENTIAL_IMAGES } from '../data';
+import {
+  formatPrice,
+  getStatusColorClass,
+  getStatusTextTranslation,
+  getTowerFromApartmentName,
+} from '../utils/helpers';
 
 interface ResidentialMapProps {
   onSelectTower: (towerId: string) => void;
   onSelectApartment: (apt: Apartment) => void;
 }
 
+// Configuración de coordenadas de las torres en el mapa aéreo
 const TOWERS_CONFIG = [
   {
     id: 'Bloque A',
@@ -28,14 +35,18 @@ const TOWERS_CONFIG = [
 ];
 
 export default function ResidentialMap({ onSelectTower, onSelectApartment }: ResidentialMapProps) {
+  // --- Estados de Filtros ---
   const [filterBeds, setFilterBeds] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [maxPrice, setMaxPrice] = useState<number>(450000);
-  const [hoveredApt, setHoveredApt] = useState<Apartment | null>(null);
-  const [hoveredTowerId, setHoveredTowerId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Filtering apartments
+  // --- Estados de Interacción ---
+  const [hoveredApt, setHoveredApt] = useState<Apartment | null>(null);
+  const [hoveredTowerId, setHoveredTowerId] = useState<string | null>(null);
+  const [mobileTab, setMobileTab] = useState<'map' | 'list'>('map');
+
+  // Filtrado de apartamentos según los filtros seleccionados
   const filteredApartments = APARTMENTS.filter((apt) => {
     const matchesBeds = filterBeds === 'all' || apt.bedrooms.toString() === filterBeds;
     const matchesStatus = filterStatus === 'all' || apt.status === filterStatus;
@@ -45,36 +56,6 @@ export default function ResidentialMap({ onSelectTower, onSelectApartment }: Res
                           apt.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesBeds && matchesStatus && matchesPrice && matchesSearch;
   });
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
-
-  const getStatusColor = (status: ApartmentStatus) => {
-    switch (status) {
-      case 'disponible':
-        return 'bg-emerald-500 border-emerald-200';
-      case 'reservado':
-        return 'bg-amber-500 border-amber-200';
-      case 'vendido':
-        return 'bg-stone-400 border-stone-200';
-    }
-  };
-
-  const getStatusText = (status: ApartmentStatus) => {
-    switch (status) {
-      case 'disponible':
-        return 'Disponible';
-      case 'reservado':
-        return 'Reservado';
-      case 'vendido':
-        return 'No disponible';
-    }
-  };
 
   return (
     <div className="space-y-8 animate-fade-in" id="interactive-map-dashboard">
@@ -107,11 +88,33 @@ export default function ResidentialMap({ onSelectTower, onSelectApartment }: Res
         </div>
       </div>
 
+      {/* Selector de Pestañas en Móvil */}
+      <div className="flex lg:hidden border border-slate-200 bg-white shadow-sm overflow-hidden mb-2">
+        <button
+          type="button"
+          onClick={() => setMobileTab('map')}
+          className={`flex-1 py-3 text-center text-xs font-mono font-bold uppercase tracking-wider transition-colors ${
+            mobileTab === 'map' ? 'bg-slate-950 text-slate-50' : 'bg-white text-slate-600'
+          }`}
+        >
+          Mapa Aéreo
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileTab('list')}
+          className={`flex-1 py-3 text-center text-xs font-mono font-bold uppercase tracking-wider transition-colors ${
+            mobileTab === 'list' ? 'bg-slate-950 text-slate-50' : 'bg-white text-slate-600'
+          }`}
+        >
+          Lista y Filtros ({filteredApartments.length})
+        </button>
+      </div>
+
       {/* Main Interactive Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         {/* Sidebar Controls & List (Left side on desktop) */}
-        <div className="lg:col-span-4 space-y-6 lg:max-h-[640px] lg:overflow-y-auto pr-1">
+        <div className={`lg:col-span-4 space-y-6 lg:max-h-[640px] lg:overflow-y-auto pr-1 ${mobileTab === 'list' ? 'block' : 'hidden lg:block'}`}>
           {/* Filters Card */}
           <div className="bg-white/70 backdrop-blur-md border border-slate-200/80 rounded-none p-5 space-y-4 shadow-lg shadow-slate-100/50">
             <div className="flex items-center justify-between">
@@ -223,7 +226,7 @@ export default function ResidentialMap({ onSelectTower, onSelectApartment }: Res
             ) : (
               <div className="space-y-3">
                 {filteredApartments.map((apt) => {
-                  const blockId = apt.name.split(' - ')[1] || 'Bloque A';
+                  const blockId = getTowerFromApartmentName(apt.name);
                   return (
                     <div
                       key={apt.id}
@@ -276,8 +279,8 @@ export default function ResidentialMap({ onSelectTower, onSelectApartment }: Res
 
                       {/* Status badge floating absolute inside */}
                       <div className="absolute right-4 bottom-4 flex items-center gap-1.5">
-                        <span className={`h-2 w-2 rounded-full ${getStatusColor(apt.status).split(' ')[0]}`} />
-                        <span className="font-mono text-[9px] text-slate-500 uppercase tracking-wider font-semibold">{getStatusText(apt.status)}</span>
+                        <span className={`h-2 w-2 rounded-full ${getStatusColorClass(apt.status).split(' ')[0]}`} />
+                        <span className="font-mono text-[9px] text-slate-500 uppercase tracking-wider font-semibold">{getStatusTextTranslation(apt.status)}</span>
                       </div>
                     </div>
                   );
@@ -288,7 +291,7 @@ export default function ResidentialMap({ onSelectTower, onSelectApartment }: Res
         </div>
 
         {/* Interactive Map Visualizer (Right side on desktop) */}
-        <div className="lg:col-span-8 space-y-4">
+        <div className={`lg:col-span-8 space-y-4 ${mobileTab === 'map' ? 'block' : 'hidden lg:block'}`}>
           <div className="relative overflow-hidden bg-stone-900 rounded-3xl border border-stone-800 shadow-xl aspect-[16/9]" id="aerial-interactive-canvas">
             {/* Base Image */}
             <img
@@ -313,7 +316,7 @@ export default function ResidentialMap({ onSelectTower, onSelectApartment }: Res
 
               {/* Individual Interactive Polygons representing Apartment Zones */}
               {APARTMENTS.map((apt) => {
-                const blockId = apt.name.split(' - ')[1] || 'Bloque A';
+                const blockId = getTowerFromApartmentName(apt.name);
                 const isTowerHovered = hoveredTowerId === blockId;
                 const isAptHovered = hoveredApt?.id === apt.id;
                 const isFiltered = filteredApartments.some(fa => fa.id === apt.id);
@@ -424,17 +427,29 @@ export default function ResidentialMap({ onSelectTower, onSelectApartment }: Res
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute bottom-6 left-6 right-6 sm:right-auto sm:max-w-sm bg-slate-950/80 border border-slate-800/80 backdrop-blur-md rounded-none p-4 text-slate-100 shadow-2xl flex items-start gap-4"
+                  className="fixed bottom-0 left-0 right-0 z-40 sm:absolute sm:bottom-6 sm:left-6 sm:right-6 sm:top-auto sm:z-auto bg-slate-950/95 border-t border-slate-800 sm:border sm:border-slate-800/80 backdrop-blur-md p-5 text-slate-100 shadow-2xl flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:max-w-sm"
                   id="map-floating-tooltip"
                 >
+                  {/* Close button for mobile bottom sheet */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setHoveredApt(null);
+                      setHoveredTowerId(null);
+                    }}
+                    className="absolute top-3 right-3 text-slate-400 hover:text-white sm:hidden p-1 text-xs"
+                    aria-label="Cerrar detalles"
+                  >
+                    ✕
+                  </button>
                   {(() => {
                     if (hoveredApt) {
                       return (
                         <div className="space-y-1 flex-1">
                           <div className="flex items-center gap-2">
-                            <span className={`h-2 w-2 rounded-full ${getStatusColor(hoveredApt.status).split(' ')[0]}`} />
+                            <span className={`h-2 w-2 rounded-full ${getStatusColorClass(hoveredApt.status).split(' ')[0]}`} />
                             <span className="font-mono text-[9px] text-slate-400 tracking-wider uppercase">
-                              {getStatusText(hoveredApt.status)} • Piso {hoveredApt.floor}
+                              {getStatusTextTranslation(hoveredApt.status)} • Piso {hoveredApt.floor}
                             </span>
                           </div>
                           <h3 className="font-sans text-base font-semibold tracking-tight text-white">{hoveredApt.name}</h3>
@@ -474,7 +489,7 @@ export default function ResidentialMap({ onSelectTower, onSelectApartment }: Res
                     return (
                       <div className="space-y-1 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className={`h-2 w-2 rounded-full ${getStatusColor(towerStatus).split(' ')[0]}`} />
+                          <span className={`h-2 w-2 rounded-full ${getStatusColorClass(towerStatus).split(' ')[0]}`} />
                           <span className="font-mono text-[9px] text-slate-400 tracking-wider uppercase">
                             {towerStatus === 'disponible' ? 'Apartamentos Disponibles' : towerStatus === 'reservado' ? 'Reservado' : 'No disponible'}
                           </span>
@@ -506,7 +521,7 @@ export default function ResidentialMap({ onSelectTower, onSelectApartment }: Res
                         onSelectTower(hoveredTowerId);
                       }
                     }}
-                    className="shrink-0 self-center bg-white hover:bg-slate-200 text-slate-950 text-xs font-sans font-bold uppercase tracking-wider px-4 py-2 rounded-none shadow-sm transition-all"
+                    className="shrink-0 w-full sm:w-auto self-stretch sm:self-center bg-white hover:bg-slate-200 text-slate-950 text-xs font-sans font-bold uppercase tracking-wider px-4 py-3 sm:py-2 rounded-none shadow-sm transition-all"
                   >
                     {hoveredApt ? 'Ver Plano' : 'Explorar Torre'}
                   </button>

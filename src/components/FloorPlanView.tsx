@@ -2,9 +2,10 @@ import { useState, ChangeEvent, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ArrowLeft, Expand, Layers, Sparkles, Car, Check, 
-  MapPin, MessageSquare, Calendar, User, Mail, Phone, ArrowUpRight, CheckCircle2 
+  MessageSquare, Calendar, User, Mail, Phone, ArrowUpRight, CheckCircle2 
 } from 'lucide-react';
 import { Apartment, Hotspot, InquiryForm } from '../types';
+import { formatPrice } from '../utils/helpers';
 
 interface FloorPlanViewProps {
   apartment: Apartment;
@@ -13,6 +14,7 @@ interface FloorPlanViewProps {
 }
 
 export default function FloorPlanView({ apartment, onBackToMap, onOpenRoom }: FloorPlanViewProps) {
+  // --- Estados del Componente ---
   const [activeHotspot, setActiveHotspot] = useState<Hotspot | null>(null);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [formData, setFormData] = useState<InquiryForm>({
@@ -22,26 +24,20 @@ export default function FloorPlanView({ apartment, onBackToMap, onOpenRoom }: Fl
     message: `Hola, estoy interesado en el ${apartment.name} (${apartment.model}) de ${apartment.area}m². Me gustaría agendar una visita o recibir más detalles. Gracias.`,
   });
 
+  /**
+   * Manejador de cambios en los campos del formulario de contacto.
+   */
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  /**
+   * Envía la solicitud/formulario simulando respuesta exitosa.
+   */
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    // Simulate API submission
     setFormSubmitted(true);
-    setTimeout(() => {
-      // Clear or keep
-    }, 5000);
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(price);
   };
 
   // Renders the architectural CAD style floor plan based on the selected type
@@ -291,7 +287,7 @@ export default function FloorPlanView({ apartment, onBackToMap, onOpenRoom }: Fl
                 return (
                   <div
                     key={hotspot.id}
-                    className="absolute z-10 -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all duration-300"
+                    className="absolute z-10 -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all duration-300 p-3"
                     style={{ left: `${hotspot.x}%`, top: `${hotspot.y}%` }}
                     onMouseEnter={() => setActiveHotspot(hotspot)}
                     onMouseLeave={() => setActiveHotspot(null)}
@@ -300,13 +296,13 @@ export default function FloorPlanView({ apartment, onBackToMap, onOpenRoom }: Fl
                   >
                     {/* Ring Pulse Container */}
                     <div className="relative flex items-center justify-center">
-                      <span className="animate-ping absolute inline-flex h-7 w-7 rounded-none bg-slate-950/25 opacity-75" />
-                      <div className={`flex h-6 w-6 items-center justify-center rounded-none border shadow-md transition-all duration-300 ${
+                      <span className="animate-ping absolute inline-flex h-9 w-9 rounded-none bg-slate-950/25 opacity-75" />
+                      <div className={`flex h-8 w-8 sm:h-6 sm:w-6 items-center justify-center rounded-none border shadow-md transition-all duration-300 ${
                         isActive 
                           ? 'bg-slate-950 border-slate-950 text-slate-50 scale-125' 
                           : 'bg-white border-slate-300 text-slate-800 hover:bg-slate-50'
                       }`}>
-                        <span className="font-sans text-[11px] font-bold">+</span>
+                        <span className="font-sans text-xs sm:text-[11px] font-bold">+</span>
                       </div>
 
                       {/* Floating local name tooltip */}
@@ -348,13 +344,13 @@ export default function FloorPlanView({ apartment, onBackToMap, onOpenRoom }: Fl
           </div>
 
           {/* Quick Rooms Legend Bar */}
-          <div className="bg-white/60 backdrop-blur-md rounded-none p-4 border border-slate-200/80 flex flex-wrap gap-4 items-center justify-center text-slate-500 text-xs font-sans shadow-sm">
-            <span className="font-bold text-slate-900 font-mono text-[10px] tracking-wider uppercase">Habitaciones fotografiadas:</span>
+          <div className="bg-white/60 backdrop-blur-md rounded-none p-4 border border-slate-200/80 flex flex-row overflow-x-auto whitespace-nowrap sm:flex-wrap gap-3 items-center justify-start sm:justify-center text-slate-500 text-xs font-sans shadow-sm scrollbar-none">
+            <span className="font-bold text-slate-900 font-mono text-[10px] tracking-wider uppercase shrink-0">Habitaciones fotografiadas:</span>
             {apartment.hotspots.map((h) => (
               <button
                 key={`legend-${h.id}`}
                 onClick={() => onOpenRoom(h)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-none hover:border-slate-950 text-slate-700 font-bold uppercase tracking-wider text-[10px] cursor-pointer transition-all"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-none hover:border-slate-950 text-slate-700 font-bold uppercase tracking-wider text-[10px] cursor-pointer transition-all shrink-0"
               >
                 <span className="h-1.5 w-1.5 rounded-none bg-slate-950"></span>
                 {h.name}
