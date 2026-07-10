@@ -29,7 +29,7 @@ export default function HomePage({ onNavigateToProjects }: HomePageProps) {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="font-sans text-base sm:text-lg text-slate-500 max-w-2xl mx-auto font-light leading-relaxed"
           >
-            Proyectos residenciales boutique diseñados bajo conceptos ecológicos de vanguardia. Ventilación cruzada, abundante luz natural y vistas perpetuas a reservas boscosas protegidas.
+            En una experiencia interactiva sin la necesidad de salir del hogar, donde podras apreciar cada detalle de tu proximo hogar.
           </motion.p>
 
           <motion.div
