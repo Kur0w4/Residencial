@@ -261,26 +261,26 @@ export default function ResidentialMap({ onSelectTower, onSelectApartment }: Res
                         </div>
                       </div>
 
-                      {/* Simple stats bar */}
-                      <div className="mt-3 grid grid-cols-3 gap-1 border-t border-slate-150 pt-3 font-sans text-xs text-slate-500">
-                        <div className="flex items-center gap-1.5">
-                          <Expand className="h-3.5 w-3.5 text-slate-400" />
-                          <span>{apt.area} m²</span>
+                      {/* Stats bar + status in one row */}
+                      <div className="mt-3 flex items-center justify-between border-t border-slate-150 pt-3 font-sans text-xs text-slate-500">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-1">
+                            <Expand className="h-3 w-3 text-slate-400" />
+                            <span>{apt.area} m²</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Layers className="h-3 w-3 text-slate-400" />
+                            <span>{apt.bedrooms} Hab</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Sparkles className="h-3 w-3 text-slate-400" />
+                            <span>{apt.bathrooms} Baños</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <Layers className="h-3.5 w-3.5 text-slate-400" />
-                          <span>{apt.bedrooms} Hab</span>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className={`h-1.5 w-1.5 rounded-full ${getStatusColorClass(apt.status).split(' ')[0]}`} />
+                          <span className="font-mono text-[9px] uppercase tracking-wider font-semibold">{getStatusTextTranslation(apt.status)}</span>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <Sparkles className="h-3.5 w-3.5 text-slate-400" />
-                          <span>{apt.bathrooms} Baños</span>
-                        </div>
-                      </div>
-
-                      {/* Status badge floating absolute inside */}
-                      <div className="absolute right-4 bottom-4 flex items-center gap-1.5">
-                        <span className={`h-2 w-2 rounded-full ${getStatusColorClass(apt.status).split(' ')[0]}`} />
-                        <span className="font-mono text-[9px] text-slate-500 uppercase tracking-wider font-semibold">{getStatusTextTranslation(apt.status)}</span>
                       </div>
                     </div>
                   );
@@ -530,7 +530,7 @@ export default function ResidentialMap({ onSelectTower, onSelectApartment }: Res
             </AnimatePresence>
 
             {/* Hint Instruction overlay */}
-            <div className="absolute top-4 left-4 bg-slate-950/70 backdrop-blur-md px-3 py-1.5 rounded-none text-[10px] font-mono uppercase tracking-wider font-semibold text-slate-200 pointer-events-none flex items-center gap-1.5 border border-white/10">
+            <div className="absolute bottom-4 left-4 bg-slate-950/70 backdrop-blur-md px-3 py-1.5 rounded-none text-[10px] font-mono uppercase tracking-wider font-semibold text-slate-200 pointer-events-none flex items-center gap-1.5 border border-white/10">
               <MapPin className="h-3 w-3 text-emerald-400 animate-bounce" />
               <span>Haz clic en una torre para ver sus apartamentos</span>
             </div>
@@ -541,6 +541,23 @@ export default function ResidentialMap({ onSelectTower, onSelectApartment }: Res
         </div>
 
       </div>
+
+      {/* Ubicación del Proyecto */}
+      <div className="bg-white/70 backdrop-blur-md border border-slate-200/80 rounded-none p-6 shadow-lg shadow-slate-100/40 space-y-4">
+        <span className="font-mono text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Ubicación del Proyecto</span>
+        <div className="relative aspect-[16/6] bg-slate-100 overflow-hidden border border-slate-200">
+          <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:16px_16px]" />
+          <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center space-y-2">
+            <MapPin className="h-7 w-7 text-emerald-600 animate-bounce" />
+            <h4 className="font-sans text-sm font-bold text-slate-800 uppercase tracking-wider">Jardines de la Reserva</h4>
+            <p className="font-sans text-xs text-slate-400 font-light max-w-sm">
+              Portal del Bosque se encuentra en una zona residencial cerrada de alta seguridad rodeada de vegetación autóctona.
+            </p>
+            <span className="font-mono text-[10px] text-slate-500">Av. de las Ceibas No. 42, Santo Domingo, RD.</span>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }

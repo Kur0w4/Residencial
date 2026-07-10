@@ -1,10 +1,9 @@
-import { useState, ChangeEvent, FormEvent } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  ArrowLeft, Expand, Layers, Sparkles, Car, Check, 
-  MessageSquare, Calendar, User, Mail, Phone, ArrowUpRight, CheckCircle2 
+import {
+  ArrowLeft, Expand, Layers, Sparkles, Car, Check, Calculator
 } from 'lucide-react';
-import { Apartment, Hotspot, InquiryForm } from '../types';
+import { Apartment, Hotspot } from '../types';
 import { formatPrice } from '../utils/helpers';
 
 interface FloorPlanViewProps {
@@ -16,29 +15,64 @@ interface FloorPlanViewProps {
 export default function FloorPlanView({ apartment, onBackToMap, onOpenRoom }: FloorPlanViewProps) {
   // --- Estados del Componente ---
   const [activeHotspot, setActiveHotspot] = useState<Hotspot | null>(null);
-  const [formSubmitted, setFormSubmitted] = useState(false);
-  const [formData, setFormData] = useState<InquiryForm>({
-    name: '',
-    email: '',
-    phone: '',
-    message: `Hola, estoy interesado en el ${apartment.name} (${apartment.model}) de ${apartment.area}m². Me gustaría agendar una visita o recibir más detalles. Gracias.`,
-  });
 
-  /**
-   * Manejador de cambios en los campos del formulario de contacto.
-   */
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  // --- Estados de la Calculadora de Financiamiento ---
+  const price = apartment.price;
+  const [downPaymentAmount, setDownPaymentAmount] = useState<number | ''>('');
+  const [loanTermMonths, setLoanTermMonths] = useState<number | ''>('');
+  const [annualInterestRate, setAnnualInterestRate] = useState<number | ''>('');
+  const [showSliders, setShowSliders] = useState<boolean>(false);
+
+  // --- Cálculos Financieros ---
+  const isValid = typeof downPaymentAmount === 'number' && downPaymentAmount > 0 && downPaymentAmount <= price &&
+                  typeof loanTermMonths === 'number' && loanTermMonths > 0 &&
+                  typeof annualInterestRate === 'number' && annualInterestRate >= 0;
+
+  const currentDownPayment = typeof downPaymentAmount === 'number' ? downPaymentAmount : 0;
+  const currentTerm = typeof loanTermMonths === 'number' ? loanTermMonths : 0;
+  const currentRate = typeof annualInterestRate === 'number' ? annualInterestRate : 0;
+
+  const loanAmount = Math.max(0, price - currentDownPayment);
+  const downPaymentPercent = Math.min(100, Math.max(0, Math.round((currentDownPayment / price) * 100)));
+  const monthlyRate = (currentRate / 100) / 12;
+
+  let monthlyPayment = 0;
+  if (isValid && loanAmount > 0) {
+    if (monthlyRate === 0) {
+      monthlyPayment = loanAmount / currentTerm;
+    } else {
+      monthlyPayment =
+        (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, currentTerm)) /
+        (Math.pow(1 + monthlyRate, currentTerm) - 1);
+    }
+  }
+
+  const totalCost = monthlyPayment * currentTerm + currentDownPayment;
+  const totalInterest = Math.max(0, totalCost - price);
+
+  // Generar tabla de amortización
+  const generateSchedule = () => {
+    if (!isValid) return [];
+    const schedule = [];
+    let remainingBalance = loanAmount;
+    for (let month = 1; month <= currentTerm; month++) {
+      const interestPayment = remainingBalance * monthlyRate;
+      const principalPayment = monthlyPayment - interestPayment;
+      const endingBalance = Math.max(0, remainingBalance - principalPayment);
+      schedule.push({
+        month,
+        startingBalance: remainingBalance,
+        payment: monthlyPayment,
+        interest: interestPayment,
+        principal: principalPayment,
+        endingBalance,
+      });
+      remainingBalance = endingBalance;
+    }
+    return schedule;
   };
 
-  /**
-   * Envía la solicitud/formulario simulando respuesta exitosa.
-   */
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    setFormSubmitted(true);
-  };
+  const amortizationSchedule = generateSchedule();
 
   // Renders the architectural CAD style floor plan based on the selected type
   const renderFloorPlanSVG = () => {
@@ -343,20 +377,6 @@ export default function FloorPlanView({ apartment, onBackToMap, onOpenRoom }: Fl
             </div>
           </div>
 
-          {/* Quick Rooms Legend Bar */}
-          <div className="bg-white/60 backdrop-blur-md rounded-none p-4 border border-slate-200/80 flex flex-row overflow-x-auto whitespace-nowrap sm:flex-wrap gap-3 items-center justify-start sm:justify-center text-slate-500 text-xs font-sans shadow-sm scrollbar-none">
-            <span className="font-bold text-slate-900 font-mono text-[10px] tracking-wider uppercase shrink-0">Habitaciones fotografiadas:</span>
-            {apartment.hotspots.map((h) => (
-              <button
-                key={`legend-${h.id}`}
-                onClick={() => onOpenRoom(h)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-none hover:border-slate-950 text-slate-700 font-bold uppercase tracking-wider text-[10px] cursor-pointer transition-all shrink-0"
-              >
-                <span className="h-1.5 w-1.5 rounded-none bg-slate-950"></span>
-                {h.name}
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* Spec Sheet & Request Form (Right on desktop) */}
@@ -434,105 +454,221 @@ export default function FloorPlanView({ apartment, onBackToMap, onOpenRoom }: Fl
             </div>
           </div>
 
-          {/* Contact Lead Form */}
-          <div className="bg-white/70 backdrop-blur-md border border-slate-200/80 rounded-none p-6 shadow-lg shadow-slate-100/50 space-y-4" id="inquiry-section">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-slate-500" />
-              <h4 className="font-sans text-sm font-bold text-slate-900">Agendar una Cita</h4>
+          {/* CALCULADORA DE FINANCIAMIENTO */}
+          <div className="bg-white/70 backdrop-blur-md border border-slate-200/80 rounded-none p-6 shadow-lg shadow-slate-100/50 space-y-6">
+            <div className="flex items-center gap-2.5 border-b border-slate-200 pb-3">
+              <Calculator className="h-4.5 w-4.5 text-slate-950 stroke-[1.5]" />
+              <h4 className="font-sans text-sm font-bold text-slate-900 uppercase tracking-wider">
+                Simulador de Financiamiento
+              </h4>
             </div>
 
-            {formSubmitted ? (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-emerald-50 border border-emerald-100 rounded-none p-5 text-center space-y-2"
-              >
-                <CheckCircle2 className="h-8 w-8 text-emerald-600 mx-auto" />
-                <h5 className="font-sans text-sm font-semibold text-emerald-900">¡Solicitud Enviada con Éxito!</h5>
-                <p className="font-sans text-xs text-emerald-700 leading-relaxed">
-                  Uno de nuestros asesores inmobiliarios se pondrá en contacto contigo en un plazo de 24 horas para enviarte los planos en PDF y coordinar tu visita.
-                </p>
-              </motion.div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-3.5">
+            {/* Manual Text Inputs */}
+            <div className="space-y-4">
+              <div>
+                <label className="block font-sans text-[10px] font-semibold text-slate-400 uppercase mb-1">
+                  Monto Inicial (USD)
+                </label>
+                <input
+                  type="number"
+                  placeholder={`Ej. ${Math.round(price * 0.2)}`}
+                  value={downPaymentAmount}
+                  onChange={(e) => {
+                    const val = e.target.value === '' ? '' : Number(e.target.value);
+                    setDownPaymentAmount(val);
+                    if (val !== '' && loanTermMonths !== '' && annualInterestRate !== '') {
+                      setShowSliders(true);
+                    }
+                  }}
+                  className="w-full bg-white/80 border border-slate-200 rounded-none px-3.5 py-2 text-xs font-mono text-slate-850 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:bg-white"
+                />
+                <span className="block text-[9px] font-mono text-slate-400 mt-1">
+                  Recomendado mín. 10% ({formatPrice(price * 0.1)})
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-sans text-[10px] font-semibold text-slate-400 uppercase mb-1">Nombre Completo</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      name="name"
-                      required
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      placeholder="Ej. Sofía Rodríguez"
-                      className="w-full bg-white/80 border border-slate-200 rounded-none px-9 py-2.5 text-xs font-sans text-slate-850 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:bg-white"
-                    />
-                    <User className="absolute left-3.5 top-3.5 h-3.5 w-3.5 text-slate-400" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-sans text-[10px] font-semibold text-slate-400 uppercase mb-1">E-mail</label>
-                    <div className="relative">
-                      <input
-                        type="email"
-                        name="email"
-                        required
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        placeholder="ejemplo@email.com"
-                        className="w-full bg-white/80 border border-slate-200 rounded-none px-9 py-2.5 text-xs font-sans text-slate-850 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:bg-white"
-                      />
-                      <Mail className="absolute left-3.5 top-3.5 h-3.5 w-3.5 text-slate-400" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block font-sans text-[10px] font-semibold text-slate-400 uppercase mb-1">Teléfono</label>
-                    <div className="relative">
-                      <input
-                        type="tel"
-                        name="phone"
-                        required
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        placeholder="+1 (809) 000-0000"
-                        className="w-full bg-white/80 border border-slate-200 rounded-none px-9 py-2.5 text-xs font-sans text-slate-850 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:bg-white"
-                      />
-                      <Phone className="absolute left-3.5 top-3.5 h-3.5 w-3.5 text-slate-400" />
-                    </div>
-                  </div>
+                  <label className="block font-sans text-[10px] font-semibold text-slate-400 uppercase mb-1">
+                    Plazo (Meses)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="Ej. 36"
+                    value={loanTermMonths}
+                    onChange={(e) => {
+                      const val = e.target.value === '' ? '' : Number(e.target.value);
+                      setLoanTermMonths(val);
+                      if (downPaymentAmount !== '' && val !== '' && annualInterestRate !== '') {
+                        setShowSliders(true);
+                      }
+                    }}
+                    className="w-full bg-white/80 border border-slate-200 rounded-none px-3.5 py-2 text-xs font-mono text-slate-850 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:bg-white"
+                  />
                 </div>
 
                 <div>
-                  <label className="block font-sans text-[10px] font-semibold text-slate-400 uppercase mb-1">Mensaje</label>
-                  <div className="relative">
-                    <textarea
-                      name="message"
-                      rows={3}
-                      value={formData.message}
-                      onChange={handleInputChange}
-                      className="w-full bg-white/80 border border-slate-200 rounded-none px-9 py-2.5 text-xs font-sans text-slate-850 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:bg-white"
-                    />
-                    <MessageSquare className="absolute left-3.5 top-3.5 h-3.5 w-3.5 text-slate-400" />
+                  <label className="block font-sans text-[10px] font-semibold text-slate-400 uppercase mb-1">
+                    Interés Anual (%)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    placeholder="Ej. 7.5"
+                    value={annualInterestRate}
+                    onChange={(e) => {
+                      const val = e.target.value === '' ? '' : Number(e.target.value);
+                      setAnnualInterestRate(val);
+                      if (downPaymentAmount !== '' && loanTermMonths !== '' && val !== '') {
+                        setShowSliders(true);
+                      }
+                    }}
+                    className="w-full bg-white/80 border border-slate-200 rounded-none px-3.5 py-2 text-xs font-mono text-slate-850 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:bg-white"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Sliders section - shown once inputs are modified or showSliders is true */}
+            {showSliders && (
+              <div className="space-y-5 pt-4 border-t border-slate-100 animate-fade-in">
+                <span className="block font-mono text-[9px] text-slate-400 uppercase font-semibold">
+                  Ajuste Fino con Sliders
+                </span>
+
+                <div>
+                  <div className="flex justify-between items-center mb-1 text-[10px]">
+                    <span className="text-slate-500 font-sans">Inicial</span>
+                    <span className="font-mono text-slate-800 font-bold">{downPaymentPercent}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="10"
+                    max="90"
+                    step="5"
+                    value={downPaymentPercent}
+                    onChange={(e) => {
+                      const pct = Number(e.target.value);
+                      setDownPaymentAmount(Math.round((price * pct) / 100));
+                    }}
+                    className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-900"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-1 text-[10px]">
+                    <span className="text-slate-500 font-sans">Plazo</span>
+                    <span className="font-mono text-slate-800 font-bold">{loanTermMonths} Meses</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="12"
+                    max="120"
+                    step="12"
+                    value={typeof loanTermMonths === 'number' ? loanTermMonths : 12}
+                    onChange={(e) => setLoanTermMonths(Number(e.target.value))}
+                    className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-900"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-1 text-[10px]">
+                    <span className="text-slate-500 font-sans">Tasa de Interés</span>
+                    <span className="font-mono text-slate-800 font-bold">{annualInterestRate}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="15"
+                    step="0.5"
+                    value={typeof annualInterestRate === 'number' ? annualInterestRate : 0}
+                    onChange={(e) => setAnnualInterestRate(Number(e.target.value))}
+                    className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-900"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Metric Summary Cards */}
+            {isValid && (
+              <div className="space-y-3 pt-4 border-t border-slate-200/60 animate-fade-in">
+                <div className="bg-slate-50 border border-slate-200/50 p-4 space-y-1">
+                  <span className="block font-mono text-[9px] text-slate-400 uppercase font-semibold">
+                    Cuota Mensual Estimada
+                  </span>
+                  <span className="block font-sans text-xl font-bold text-emerald-600">
+                    {formatPrice(monthlyPayment)}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 text-[10px]">
+                  <div className="bg-white border border-slate-200 p-2.5">
+                    <span className="block text-slate-400 font-mono text-[8px] uppercase">Financiado</span>
+                    <span className="font-sans font-bold text-slate-800">{formatPrice(loanAmount)}</span>
+                  </div>
+                  <div className="bg-white border border-slate-200 p-2.5">
+                    <span className="block text-slate-400 font-mono text-[8px] uppercase">Total Interés</span>
+                    <span className="font-sans font-bold text-slate-800">{formatPrice(totalInterest)}</span>
                   </div>
                 </div>
 
-                <button
-                  type="submit"
-                  className="w-full bg-slate-900 hover:bg-slate-950 text-slate-50 text-xs font-sans font-bold uppercase tracking-widest py-3.5 rounded-none transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <span>Agendar Visita de Inspección</span>
-                  <ArrowUpRight className="h-4 w-4" />
-                </button>
-              </form>
+                <div className="text-[10px] space-y-1 border-t border-slate-100 pt-2 font-mono text-slate-400">
+                  <div className="flex justify-between">
+                    <span>Precio de Lista:</span>
+                    <span className="text-slate-600 font-semibold">{formatPrice(price)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Costo Final:</span>
+                    <span className="text-slate-800 font-bold">{formatPrice(totalCost)}</span>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
-
         </div>
 
       </div>
+
+      {/* TABLA DE AMORTIZACIÓN */}
+      {isValid && (
+        <div className="bg-white/70 backdrop-blur-md border border-slate-200/80 rounded-none p-6 shadow-lg shadow-slate-100/40 space-y-4 animate-fade-in mt-6">
+          <div className="flex justify-between items-center border-b border-slate-200 pb-3">
+            <span className="font-sans text-[11px] font-bold text-slate-900 uppercase tracking-wider">
+              Tabla de Amortización Mensual
+            </span>
+            <span className="font-mono text-[10px] text-slate-400 uppercase font-semibold">
+              {loanTermMonths} Pagos
+            </span>
+          </div>
+          <div className="overflow-x-auto max-h-[350px] overflow-y-auto">
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-slate-100/60 sticky top-0 z-10 border-b border-slate-200">
+                <tr className="font-mono text-[9px] text-slate-500 uppercase tracking-wider">
+                  <th className="px-4 py-2.5 text-center">Mes</th>
+                  <th className="px-4 py-2.5 text-right">Saldo Pendiente</th>
+                  <th className="px-4 py-2.5 text-right">Cuota Total</th>
+                  <th className="px-4 py-2.5 text-right">Interés</th>
+                  <th className="px-4 py-2.5 text-right">Capital</th>
+                  <th className="px-4 py-2.5 text-right">Nuevo Saldo</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-[10px] font-mono text-slate-600">
+                {amortizationSchedule.map((row) => (
+                  <tr key={row.month} className="hover:bg-slate-50/50">
+                    <td className="px-4 py-2 text-center font-bold text-slate-900">{row.month}</td>
+                    <td className="px-4 py-2 text-right">{formatPrice(row.startingBalance)}</td>
+                    <td className="px-4 py-2 text-right text-slate-900 font-semibold">{formatPrice(row.payment)}</td>
+                    <td className="px-4 py-2 text-right text-amber-700">{formatPrice(row.interest)}</td>
+                    <td className="px-4 py-2 text-right text-emerald-700">{formatPrice(row.principal)}</td>
+                    <td className="px-4 py-2 text-right text-slate-800">{formatPrice(row.endingBalance)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

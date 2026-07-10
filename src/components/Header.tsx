@@ -1,17 +1,31 @@
-import { Trees, Phone, Map, ShieldCheck, Mail } from 'lucide-react';
+import { useState } from 'react';
+import { Trees, Menu, X } from 'lucide-react';
 
 interface HeaderProps {
-  onReset: () => void;
-  selectedAptId: string | null;
+  activePage: 'inicio' | 'proyectos' | 'contacto';
+  onNavigate: (page: 'inicio' | 'proyectos' | 'contacto') => void;
 }
 
-export default function Header({ onReset, selectedAptId }: HeaderProps) {
+export default function Header({ activePage, onNavigate }: HeaderProps) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const menuItems = [
+    { id: 'inicio', label: 'Inicio' },
+    { id: 'proyectos', label: 'Proyectos' },
+    { id: 'contacto', label: 'Contacto' }
+  ] as const;
+
+  const handleNavigate = (page: typeof menuItems[number]['id']) => {
+    onNavigate(page);
+    setMobileMenuOpen(false);
+  };
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-200/60 bg-white/75 backdrop-blur-lg">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
         {/* Logo and Brand */}
-        <div 
-          onClick={onReset}
+        <div
+          onClick={() => handleNavigate('inicio')}
           className="flex cursor-pointer items-center gap-3 transition-all hover:opacity-90"
           id="brand-logo"
         >
@@ -28,44 +42,48 @@ export default function Header({ onReset, selectedAptId }: HeaderProps) {
           </div>
         </div>
 
-        {/* Navigation / Status */}
+        {/* Navigation - Desktop */}
         <nav className="hidden md:flex items-center gap-8 font-semibold uppercase tracking-widest text-xs">
-          <button 
-            onClick={onReset}
-            className={`font-sans tracking-widest transition-colors cursor-pointer ${!selectedAptId ? 'text-slate-900 border-b-2 border-slate-900 pb-1 font-bold' : 'text-slate-500 hover:text-slate-900 pb-1'}`}
-          >
-            Inicio
-          </button>
-          <a 
-            href="#amenities-section" 
-            className="font-sans text-slate-500 hover:text-slate-900 transition-colors pb-1"
-          >
-            Amenidades
-          </a>
-          <a 
-            href="#inquiry-section" 
-            className="font-sans text-slate-500 hover:text-slate-900 transition-colors pb-1"
-          >
-            Contacto
-          </a>
+          {menuItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => handleNavigate(item.id)}
+              className={`font-sans tracking-widest transition-colors cursor-pointer pb-1 ${
+                activePage === item.id 
+                  ? 'text-slate-900 border-b-2 border-slate-900 font-bold' 
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
         </nav>
 
-        {/* Action Button & Contact info */}
-        <div className="flex items-center gap-4">
-          <div className="hidden lg:flex flex-col items-end text-right">
-            <span className="font-mono text-[9px] tracking-wider text-slate-400 uppercase">Llámanos</span>
-            <span className="font-sans text-xs font-semibold text-slate-900">+1 (809) 555-0195</span>
-          </div>
-          <a
-            href="#inquiry-section"
-            className="flex items-center gap-2 rounded-none bg-slate-900 px-4 py-2.5 font-sans text-xs font-bold uppercase tracking-[0.15em] text-slate-50 transition-all hover:bg-slate-850"
-            id="contact-button"
-          >
-            <Mail className="h-3.5 w-3.5" />
-            <span>Solicitar Dossier</span>
-          </a>
-        </div>
+        {/* Mobile menu trigger */}
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="flex md:hidden p-2 text-slate-650 hover:text-slate-950 focus:outline-none cursor-pointer"
+        >
+          {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
       </div>
+
+      {/* Mobile dropdown navigation menu */}
+      {mobileMenuOpen && (
+        <nav className="md:hidden border-t border-slate-200/60 bg-white px-6 py-4 flex flex-col gap-4 font-semibold uppercase tracking-widest text-xs">
+          {menuItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => handleNavigate(item.id)}
+              className={`w-full text-left py-2 font-sans transition-colors cursor-pointer ${
+                activePage === item.id ? 'text-slate-950 font-bold' : 'text-slate-500'
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </nav>
+      )}
     </header>
   );
 }

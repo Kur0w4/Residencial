@@ -402,11 +402,3 @@ export const APARTMENTS: Apartment[] = [
   }
 ];
 
-export const AMENITIES = [
-  { name: 'Piscina Infinity', icon: 'Waves' },
-  { name: 'Gimnasio Equipado', icon: 'Dumbbell' },
-  { name: 'Seguridad 24/7', icon: 'ShieldCheck' },
-  { name: 'Parque Infantil', icon: 'Baby' },
-  { name: 'Salón de Eventos', icon: 'GlassWater' },
-  { name: 'Senderos Verdes', icon: 'Trees' },
-];

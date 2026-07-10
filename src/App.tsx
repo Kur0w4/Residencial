@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import {
-  Trees, Waves, Dumbbell, ShieldCheck,
-  Award, Key, Compass
-} from 'lucide-react';
 import { Apartment, Hotspot } from './types';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import HomePage from './components/HomePage';
+import ProjectsPage from './components/ProjectsPage';
+import ContactPage from './components/ContactPage';
 import ResidentialMap from './components/ResidentialMap';
 import TowerElevationView from './components/TowerElevationView';
 import FloorPlanView from './components/FloorPlanView';
@@ -14,10 +13,28 @@ import RoomPhotoModal from './components/RoomPhotoModal';
 import { getTowerFromApartmentName, scrollToInteractiveContainer } from './utils/helpers';
 
 export default function App() {
-  // --- Estados de Navegación Interactiva ---
+  // --- Estados de Navegación de Páginas ---
+  const [activePage, setActivePage] = useState<'inicio' | 'proyectos' | 'contacto'>('inicio');
+  const [selectedProject, setSelectedProject] = useState<string | null>(null);
+
+  // --- Estados del Visualizador Inmobiliario (Portal del Bosque) ---
   const [selectedTower, setSelectedTower] = useState<string | null>(null);
   const [selectedApartment, setSelectedApartment] = useState<Apartment | null>(null);
   const [activeRoomPhoto, setActiveRoomPhoto] = useState<Hotspot | null>(null);
+
+  /**
+   * Cambia la página activa de la aplicación.
+   */
+  const handleNavigate = (page: typeof activePage) => {
+    setActivePage(page);
+    // Al navegar a proyectos desde el menú, resetear para mostrar la lista de proyectos
+    if (page === 'proyectos') {
+      setSelectedProject(null);
+      setSelectedTower(null);
+      setSelectedApartment(null);
+      setActiveRoomPhoto(null);
+    }
+  };
 
   /**
    * Selecciona una torre y desplaza suavemente la pantalla al contenedor interactivo.
@@ -69,149 +86,106 @@ export default function App() {
 
       {/* Premium Navigation Header */}
       <Header
-        onReset={handleBackToMap}
-        selectedAptId={selectedApartment?.id || selectedTower || null}
+        activePage={activePage}
+        onNavigate={handleNavigate}
       />
 
       {/* Main Core View Area */}
       <main className="flex-1">
+        <AnimatePresence mode="wait">
+          {activePage === 'inicio' && (
+            <motion.div
+              key="inicio"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.3 }}
+            >
+              <HomePage onNavigateToProjects={() => handleNavigate('proyectos')} />
+            </motion.div>
+          )}
 
-        {/* Hero Concept Banner */}
-        <section className="relative overflow-hidden border-b border-slate-200/60 bg-white/70 backdrop-blur-md py-16 sm:py-24">
-          <div className="mx-auto max-w-7xl px-6 relative z-10 space-y-4">
-            <h1 className="font-sans text-4xl sm:text-5xl lg:text-6xl font-light tracking-tight text-slate-950 max-w-4xl leading-[1.1]">
-              Arquitectura de vanguardia en <br className="hidden sm:inline" />
-              <span className="font-light">Portal del Bosque</span>
-            </h1>
-            <p className="font-sans text-base sm:text-lg text-slate-500 max-w-2xl font-light leading-relaxed">
-              Un desarrollo inmobiliario boutique con apartamentos diseñados para inspirar paz, ventilación cruzada, abundantes entradas de luz solar y vistas infinitas a una reserva natural protegida.
-            </p>
-          </div>
-          {/* Subtle architectural background accent grid */}
-          <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:16px_16px] z-0"></div>
-        </section>
+          {activePage === 'proyectos' && (
+            <motion.div
+              key="proyectos"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.3 }}
+            >
+              {!selectedProject ? (
+                <ProjectsPage onSelectProject={(id) => setSelectedProject(id)} />
+              ) : (
+                <section className="py-16 mx-auto max-w-7xl px-6" id="main-interactive-container">
+                  {/* Botón para regresar al catálogo de proyectos */}
+                  <button
+                    onClick={() => setSelectedProject(null)}
+                    className="mb-8 group flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-950 transition-colors cursor-pointer"
+                  >
+                    ← Volver a Desarrollos
+                  </button>
 
-        {/* Interactive Interactive Sandbox Frame */}
-        <section className="py-16 mx-auto max-w-7xl px-6" id="main-interactive-container">
-          <AnimatePresence mode="wait">
-            {!selectedTower && !selectedApartment ? (
-              <motion.div
-                key="map-view"
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                transition={{ duration: 0.35, ease: 'easeInOut' }}
-              >
-                <ResidentialMap 
-                  onSelectTower={handleSelectTower}
-                  onSelectApartment={handleSelectApartment} 
-                />
-              </motion.div>
-            ) : selectedTower && !selectedApartment ? (
-              <motion.div
-                key="tower-elevation-view"
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                transition={{ duration: 0.35, ease: 'easeInOut' }}
-              >
-                <TowerElevationView
-                  towerId={selectedTower}
-                  onBackToMap={handleBackToMap}
-                  onSelectApartment={handleSelectApartment}
-                />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="floor-plan-view"
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                transition={{ duration: 0.35, ease: 'easeInOut' }}
-              >
-                <FloorPlanView
-                  apartment={selectedApartment!}
-                  onBackToMap={handleBackToTower}
-                  onOpenRoom={handleOpenRoom}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </section>
+                  <AnimatePresence mode="wait">
+                    {!selectedTower && !selectedApartment ? (
+                      <motion.div
+                        key="map-view"
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -15 }}
+                        transition={{ duration: 0.35, ease: 'easeInOut' }}
+                      >
+                        <ResidentialMap
+                          onSelectTower={handleSelectTower}
+                          onSelectApartment={handleSelectApartment}
+                        />
+                      </motion.div>
+                    ) : selectedTower && !selectedApartment ? (
+                      <motion.div
+                        key="tower-elevation-view"
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -15 }}
+                        transition={{ duration: 0.35, ease: 'easeInOut' }}
+                      >
+                        <TowerElevationView
+                          towerId={selectedTower}
+                          onBackToMap={handleBackToMap}
+                          onSelectApartment={handleSelectApartment}
+                        />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="floor-plan-view"
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -15 }}
+                        transition={{ duration: 0.35, ease: 'easeInOut' }}
+                      >
+                        <FloorPlanView
+                          apartment={selectedApartment!}
+                          onBackToMap={handleBackToTower}
+                          onOpenRoom={handleOpenRoom}
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </section>
+              )}
+            </motion.div>
+          )}
 
-        {/* Community Amenities & Lifestyle benefits */}
-        <section className="bg-slate-100/40 border-y border-slate-200/60 py-16" id="amenities-section">
-          <div className="mx-auto max-w-7xl px-6 space-y-12">
-
-            <div className="text-center max-w-2xl mx-auto space-y-2">
-              <span className="font-mono text-[9px] tracking-[0.2em] text-slate-400 uppercase font-bold block">
-                Amenities & Services
-              </span>
-              <h3 className="font-sans text-2xl font-light tracking-tight text-slate-950 sm:text-3xl">
-                Un Estilo de Vida Elevado
-              </h3>
-              <p className="font-sans text-xs sm:text-sm text-slate-500">
-                Portal del Bosque combina la privacidad de tu hogar con una selección exclusiva de áreas sociales para el esparcimiento y el autocuidado.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-
-              <div className="bg-white/75 backdrop-blur-md border border-slate-200/80 rounded-none p-6 text-center space-y-3 shadow-lg shadow-slate-100/50">
-                <div className="h-12 w-12 rounded-none bg-slate-50 text-slate-900 border border-slate-200/50 flex items-center justify-center mx-auto">
-                  <Waves className="h-6 w-6 stroke-[1.2]" />
-                </div>
-                <h4 className="font-sans text-sm font-bold text-slate-900 uppercase tracking-wider">Piscina Infinity</h4>
-                <p className="font-sans text-[11px] text-slate-400">Área climatizada con deck de solárium y camastros de relajación.</p>
-              </div>
-
-              <div className="bg-white/75 backdrop-blur-md border border-slate-200/80 rounded-none p-6 text-center space-y-3 shadow-lg shadow-slate-100/50">
-                <div className="h-12 w-12 rounded-none bg-slate-50 text-slate-900 border border-slate-200/50 flex items-center justify-center mx-auto">
-                  <Dumbbell className="h-6 w-6 stroke-[1.2]" />
-                </div>
-                <h4 className="font-sans text-sm font-bold text-slate-900 uppercase tracking-wider">Wellness Center</h4>
-                <p className="font-sans text-[11px] text-slate-400">Gimnasio completo con equipamiento de cardio, musculación y yoga.</p>
-              </div>
-
-              <div className="bg-white/75 backdrop-blur-md border border-slate-200/80 rounded-none p-6 text-center space-y-3 shadow-lg shadow-slate-100/50">
-                <div className="h-12 w-12 rounded-none bg-slate-50 text-slate-900 border border-slate-200/50 flex items-center justify-center mx-auto">
-                  <ShieldCheck className="h-6 w-6 stroke-[1.2]" />
-                </div>
-                <h4 className="font-sans text-sm font-bold text-slate-900 uppercase tracking-wider">Seguridad 24/7</h4>
-                <p className="font-sans text-[11px] text-slate-400">Acceso controlado mediante garita, cámaras y patrullaje preventivo.</p>
-              </div>
-
-              <div className="bg-white/75 backdrop-blur-md border border-slate-200/80 rounded-none p-6 text-center space-y-3 shadow-lg shadow-slate-100/50">
-                <div className="h-12 w-12 rounded-none bg-slate-50 text-slate-900 border border-slate-200/50 flex items-center justify-center mx-auto">
-                  <Trees className="h-6 w-6 stroke-[1.2]" />
-                </div>
-                <h4 className="font-sans text-sm font-bold text-slate-900 uppercase tracking-wider">Senderos Verdes</h4>
-                <p className="font-sans text-[11px] text-slate-400">Sendero ecológico privado de 1.2 kilómetros para caminata y running.</p>
-              </div>
-
-            </div>
-
-            {/* Quick investment seals */}
-            <div className="pt-8 border-t border-slate-200 flex flex-wrap gap-8 items-center justify-center text-slate-400 text-[10px] font-mono uppercase tracking-widest font-bold">
-              <span className="flex items-center gap-2">
-                <Award className="h-4 w-4 text-slate-500" />
-                Doble Altura Estructural
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-2">
-                <Compass className="h-4 w-4 text-slate-500" />
-                Ventilación Cruzada Certificada
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-2">
-                <Key className="h-4 w-4 text-slate-500" />
-                Entrega Garantizada Fiduciaria
-              </span>
-            </div>
-
-          </div>
-        </section>
-
+          {activePage === 'contacto' && (
+            <motion.div
+              key="contacto"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.3 }}
+            >
+              <ContactPage />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
       {/* Cinematic Photorealistic Lightbox Modal */}
