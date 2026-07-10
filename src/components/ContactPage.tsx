@@ -11,8 +11,8 @@ export default function ContactPage() {
     {
       icon: Mail,
       title: 'Correo Electrónico',
-      value: 'info@portaldelbosque.com.do',
-      href: 'mailto:info@portaldelbosque.com.do',
+      value: 'info@inmueblesatualcance.com',
+      href: 'mailto:info@inmueblesatualcance.com',
     },
     {
       icon: MapPin,
@@ -26,13 +26,13 @@ export default function ContactPage() {
     {
       icon: Instagram,
       name: 'Instagram',
-      handle: '@portaldelbosque.rd',
+      handle: '@inmueblesatualcance.rd',
       href: 'https://instagram.com',
     },
     {
       icon: Facebook,
       name: 'Facebook',
-      handle: 'Portal del Bosque Residencias',
+      handle: 'Inmuebles a tu alcance Residencias',
       href: 'https://facebook.com',
     }
   ];

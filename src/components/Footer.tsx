@@ -43,7 +43,7 @@ export default function Footer({ onNavigatePrivacy }: FooterProps) {
               </li>
               <li className="flex items-center gap-2.5">
                 <Mail className="h-4 w-4 text-slate-500" />
-                <span>info@portaldelbosque.com.do</span>
+                <span>info@inmueblesatualcance.com</span>
               </li>
             </ul>
           </div>

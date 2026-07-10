@@ -8,8 +8,8 @@ interface ProjectsPageProps {
 export default function ProjectsPage({ onSelectProject }: ProjectsPageProps) {
   const projects = [
     {
-      id: 'portal-del-bosque',
-      name: 'Portal del Bosque',
+      id: 'inmuebles-a-tu-alcance',
+      name: 'Inmuebles a tu alcance',
       location: 'Santo Domingo, RD',
       tagline: 'Residencias de Lujo Boutique',
       description: 'Un desarrollo residencial de alta gama diseñado para fusionar la arquitectura moderna de bajo impacto con un entorno natural boscoso protegido. Espacios pensados para el bienestar, la elegancia y la durabilidad.',

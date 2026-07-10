@@ -375,7 +375,7 @@ export default function TowerElevationView({ towerId, onBackToMap, onSelectApart
         <div className="flex items-center gap-2">
           <span className="font-mono text-xs text-slate-400">Desarrollo:</span>
           <span className="font-mono text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-none uppercase">
-            Portal del Bosque • {towerName}
+            Inmuebles a tu alcance • {towerName}
           </span>
         </div>
       </div>

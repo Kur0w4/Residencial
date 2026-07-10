@@ -296,7 +296,7 @@ export default function ResidentialMap({ onSelectTower, onSelectApartment }: Res
             {/* Base Image */}
             <img
               src={RESIDENTIAL_IMAGES.aerial}
-              alt="Planta Aérea Portal del Bosque"
+              alt="Planta Aérea Inmuebles a tu alcance"
               referrerPolicy="no-referrer"
               className="w-full h-full object-cover select-none pointer-events-none opacity-85 transition-transform duration-500"
             />
@@ -551,7 +551,7 @@ export default function ResidentialMap({ onSelectTower, onSelectApartment }: Res
             <MapPin className="h-7 w-7 text-emerald-600 animate-bounce" />
             <h4 className="font-sans text-sm font-bold text-slate-800 uppercase tracking-wider">Jardines de la Reserva</h4>
             <p className="font-sans text-xs text-slate-400 font-light max-w-sm">
-              Portal del Bosque se encuentra en una zona residencial cerrada de alta seguridad rodeada de vegetación autóctona.
+              Nuestro residencial se encuentra en una zona residencial cerrada de alta seguridad rodeada de vegetación autóctona.
             </p>
             <span className="font-mono text-[10px] text-slate-500">Av. de las Ceibas No. 42, Santo Domingo, RD.</span>
           </div>

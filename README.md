@@ -1,7 +1,7 @@
 
-# Portal del Bosque - Visualizador Inmobiliario Interactivo
+# Inmuebles a tu alcance - Visualizador Inmobiliario Interactivo
 
-Este es un visualizador interactivo prémium diseñado para la inmobiliaria **Portal del Bosque**. Permite a los clientes y agentes inmobiliarios explorar el residencial completo a través de una interfaz de tres pasos inmersiva y fluida.
+Este es un visualizador interactivo prémium diseñado para la inmobiliaria **Inmuebles a tu alcance**. Permite a los clientes y agentes inmobiliarios explorar el residencial completo a través de una interfaz de tres pasos inmersiva y fluida.
 
 ## Características Clave
 

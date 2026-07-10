@@ -18,7 +18,7 @@ export default function App() {
   const [activePage, setActivePage] = useState<'inicio' | 'proyectos' | 'contacto' | 'privacidad'>('inicio');
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
 
-  // --- Estados del Visualizador Inmobiliario (Portal del Bosque) ---
+  // --- Estados del Visualizador Inmobiliario (Inmuebles a tu alcance) ---
   const [selectedTower, setSelectedTower] = useState<string | null>(null);
   const [selectedApartment, setSelectedApartment] = useState<Apartment | null>(null);
   const [activeRoomPhoto, setActiveRoomPhoto] = useState<Hotspot | null>(null);

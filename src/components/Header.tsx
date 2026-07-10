@@ -33,8 +33,8 @@ export default function Header({ activePage, onNavigate }: HeaderProps) {
             <Trees className="h-6 w-6 stroke-[1.5]" />
           </div>
           <div>
-            <span className="font-sans text-xl font-semibold tracking-widest text-slate-900">
-              PORTAL DEL BOSQUE
+            <span className="font-sans text-xl font-semibold tracking-widest text-slate-900 uppercase">
+              INMUEBLES A TU ALCANCE
             </span>
             <span className="block font-mono text-[9px] tracking-[0.2em] text-slate-400 uppercase font-medium">
               Residencias de Lujo
@@ -48,11 +48,10 @@ export default function Header({ activePage, onNavigate }: HeaderProps) {
             <button
               key={item.id}
               onClick={() => handleNavigate(item.id)}
-              className={`font-sans tracking-widest transition-colors cursor-pointer pb-1 ${
-                activePage === item.id 
-                  ? 'text-slate-900 border-b-2 border-slate-900 font-bold' 
+              className={`font-sans tracking-widest transition-colors cursor-pointer pb-1 ${activePage === item.id
+                  ? 'text-slate-900 border-b-2 border-slate-900 font-bold'
                   : 'text-slate-500 hover:text-slate-900'
-              }`}
+                }`}
             >
               {item.label}
             </button>
@@ -75,9 +74,8 @@ export default function Header({ activePage, onNavigate }: HeaderProps) {
             <button
               key={item.id}
               onClick={() => handleNavigate(item.id)}
-              className={`w-full text-left py-2 font-sans transition-colors cursor-pointer ${
-                activePage === item.id ? 'text-slate-950 font-bold' : 'text-slate-500'
-              }`}
+              className={`w-full text-left py-2 font-sans transition-colors cursor-pointer ${activePage === item.id ? 'text-slate-950 font-bold' : 'text-slate-500'
+                }`}
             >
               {item.label}
             </button>

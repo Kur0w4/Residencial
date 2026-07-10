@@ -10,7 +10,7 @@ export default function PrivacyPage({ onBackToHome }: PrivacyPageProps) {
     {
       icon: Shield,
       title: '1. Responsable del Tratamiento',
-      content: 'El responsable del tratamiento de sus datos personales es Fideicomiso Portal del Bosque / Inmobiliaria Portal del Bosque, S.A.S., con domicilio social en Av. de las Ceibas No. 42, Jardines de la Reserva, Santo Domingo, República Dominicana. Correo de contacto: info@portaldelbosque.com.do.'
+      content: 'El responsable del tratamiento de sus datos personales es Fideicomiso Inmuebles a tu alcance / Inmobiliaria Inmuebles a tu alcance, S.A.S., con domicilio social en Av. de las Ceibas No. 42, Jardines de la Reserva, Santo Domingo, República Dominicana. Correo de contacto: info@inmueblesatualcance.com.'
     },
     {
       icon: Eye,
@@ -30,7 +30,7 @@ export default function PrivacyPage({ onBackToHome }: PrivacyPageProps) {
     {
       icon: CheckCircle2,
       title: '5. Sus Derechos (ARCO)',
-      content: 'Usted tiene derecho a acceder, rectificar, cancelar u oponerse al tratamiento de sus datos personales en cualquier momento. Para ejercer estos derechos, puede enviar una solicitud por escrito acompañada de una copia de su documento de identidad a info@portaldelbosque.com.do.'
+      content: 'Usted tiene derecho a acceder, rectificar, cancelar u oponerse al tratamiento de sus datos personales en cualquier momento. Para ejercer estos derechos, puede enviar una solicitud por escrito acompañada de una copia de su documento de identidad a info@inmueblesatualcance.com.'
     }
   ];
 

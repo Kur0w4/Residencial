@@ -124,7 +124,7 @@ export default function RoomPhotoModal({ hotspot, allHotspots, onClose, onNaviga
 
             <div className="flex gap-2 text-xs font-mono text-slate-500 justify-between">
               <span>Unidad {currentIndex + 1} de {allHotspots.length}</span>
-              <span>• Portal del Bosque</span>
+              <span>• Inmuebles a tu alcance</span>
             </div>
           </div>
         </div>

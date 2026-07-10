@@ -1,5 +1,5 @@
 {
-  "name": "Portal del Bosque",
+  "name": "Inmuebles a tu alcance",
   "description": "Mapa interactivo residencial y planos de planta detallados con puntos de interés y fotografías reales.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
