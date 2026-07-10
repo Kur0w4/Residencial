@@ -6,6 +6,7 @@ import Footer from './components/Footer';
 import HomePage from './components/HomePage';
 import ProjectsPage from './components/ProjectsPage';
 import ContactPage from './components/ContactPage';
+import PrivacyPage from './components/PrivacyPage';
 import ResidentialMap from './components/ResidentialMap';
 import TowerElevationView from './components/TowerElevationView';
 import FloorPlanView from './components/FloorPlanView';
@@ -14,7 +15,7 @@ import { getTowerFromApartmentName, scrollToInteractiveContainer } from './utils
 
 export default function App() {
   // --- Estados de Navegación de Páginas ---
-  const [activePage, setActivePage] = useState<'inicio' | 'proyectos' | 'contacto'>('inicio');
+  const [activePage, setActivePage] = useState<'inicio' | 'proyectos' | 'contacto' | 'privacidad'>('inicio');
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
 
   // --- Estados del Visualizador Inmobiliario (Portal del Bosque) ---
@@ -185,6 +186,18 @@ export default function App() {
               <ContactPage />
             </motion.div>
           )}
+
+          {activePage === 'privacidad' && (
+            <motion.div
+              key="privacidad"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.3 }}
+            >
+              <PrivacyPage onBackToHome={() => handleNavigate('inicio')} />
+            </motion.div>
+          )}
         </AnimatePresence>
       </main>
 
@@ -201,7 +214,7 @@ export default function App() {
       </AnimatePresence>
 
       {/* Modern Compact Real Estate Footer */}
-      <Footer />
+      <Footer onNavigatePrivacy={() => handleNavigate('privacidad')} />
 
     </div>
   );

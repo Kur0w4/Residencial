@@ -1,6 +1,10 @@
 import { Trees, Mail, Phone, MapPin, Shield, CheckCircle } from 'lucide-react';
 
-export default function Footer() {
+interface FooterProps {
+  onNavigatePrivacy: () => void;
+}
+
+export default function Footer({ onNavigatePrivacy }: FooterProps) {
   const currentYear = new Date().getFullYear();
 
   return (
@@ -15,20 +19,16 @@ export default function Footer() {
               </div>
               <div>
                 <span className="font-sans text-lg font-bold tracking-tight text-white block uppercase">
-                  PORTAL DEL BOSQUE
+                  Inmuebles
                 </span>
                 <span className="block font-mono text-[8px] tracking-[0.2em] text-slate-400 uppercase font-semibold">
-                  Real Estate Residences
+                  a tu alcance
                 </span>
               </div>
             </div>
             <p className="max-w-md font-sans text-xs leading-relaxed text-slate-300">
-              Un desarrollo residencial de alta gama diseñado para fusionar la arquitectura moderna de bajo impacto con un entorno natural boscoso protegido. Espacios pensados para el bienestar, la elegancia y la durabilidad.
+              Encuentra tu proximo hogar desde la comodidad de tu casa con todo lujo de detalles.
             </p>
-            <div className="flex items-center gap-2 pt-2 text-[10px] font-sans text-slate-400">
-              <Shield className="h-4 w-4 text-emerald-500" />
-              <span>Proyecto con certificación internacional de sostenibilidad LEED.</span>
-            </div>
           </div>
 
           {/* Quick Info */}
@@ -37,13 +37,9 @@ export default function Footer() {
               Ubicación & Ventas
             </h4>
             <ul className="space-y-3 font-sans text-xs text-slate-300">
-              <li className="flex items-start gap-2.5">
-                <MapPin className="h-4 w-4 text-slate-500 shrink-0 mt-0.5" />
-                <span>Av. de las Ceibas No. 42, Jardines de la Reserva. Santo Domingo, RD.</span>
-              </li>
               <li className="flex items-center gap-2.5">
                 <Phone className="h-4 w-4 text-slate-500" />
-                <span>+1 (809) 555-0195</span>
+                <span>+1 (849) 555-0195</span>
               </li>
               <li className="flex items-center gap-2.5">
                 <Mail className="h-4 w-4 text-slate-500" />
@@ -79,9 +75,17 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[10px] uppercase tracking-widest text-slate-500 font-bold">
-          <p>© {currentYear} Portal del Bosque S.R.L. Todos los derechos reservados.</p>
+          <p>© {currentYear} Inmuebles a tu alcance. Todos los derechos reservados.</p>
           <div className="flex gap-6">
-            <a href="#" className="hover:text-slate-300 transition-colors">Términos de Privacidad</a>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                onNavigatePrivacy();
+              }}
+              className="hover:text-slate-300 transition-colors cursor-pointer text-left focus:outline-none"
+            >
+              Términos de Privacidad
+            </button>
             <a href="#" className="hover:text-slate-300 transition-colors">Especificaciones Técnicas</a>
           </div>
         </div>

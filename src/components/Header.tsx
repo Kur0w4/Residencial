@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Trees, Menu, X } from 'lucide-react';
 
 interface HeaderProps {
-  activePage: 'inicio' | 'proyectos' | 'contacto';
+  activePage: 'inicio' | 'proyectos' | 'contacto' | 'privacidad';
   onNavigate: (page: 'inicio' | 'proyectos' | 'contacto') => void;
 }
 
