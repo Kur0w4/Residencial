@@ -454,14 +454,21 @@ export default function FloorPlanView({ apartment, onBackToMap, onOpenRoom }: Fl
             </div>
           </div>
 
-          {/* CALCULADORA DE FINANCIAMIENTO */}
-          <div className="bg-white/70 backdrop-blur-md border border-slate-200/80 rounded-none p-6 shadow-lg shadow-slate-100/50 space-y-6">
-            <div className="flex items-center gap-2.5 border-b border-slate-200 pb-3">
-              <Calculator className="h-4.5 w-4.5 text-slate-950 stroke-[1.5]" />
-              <h4 className="font-sans text-sm font-bold text-slate-900 uppercase tracking-wider">
-                Simulador de Financiamiento
-              </h4>
-            </div>
+        </div>
+
+      </div>
+
+      {/* CALCULADORA + TABLA — segunda fila, ocupa el ancho completo */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        {/* Panel izquierdo: Inputs + Sliders + Métricas */}
+        <div className={`${isValid ? 'lg:col-span-5' : 'lg:col-span-12'} bg-white/70 backdrop-blur-md border border-slate-200/80 rounded-none p-6 shadow-lg shadow-slate-100/50 space-y-6 transition-all`}>
+          <div className="flex items-center gap-2.5 border-b border-slate-200 pb-3">
+            <Calculator className="h-4 w-4 text-slate-950 stroke-[1.5]" />
+            <h4 className="font-sans text-sm font-bold text-slate-900 uppercase tracking-wider">
+              Simulador de Financiamiento
+            </h4>
+          </div>
 
             {/* Manual Text Inputs */}
             <div className="space-y-4">
@@ -593,15 +600,11 @@ export default function FloorPlanView({ apartment, onBackToMap, onOpenRoom }: Fl
             {isValid && (
               <div className="space-y-3 pt-4 border-t border-slate-200/60 animate-fade-in">
                 <div className="bg-slate-50 border border-slate-200/50 p-4 space-y-1">
-                  <span className="block font-mono text-[9px] text-slate-400 uppercase font-semibold">
-                    Cuota Mensual Estimada
-                  </span>
-                  <span className="block font-sans text-xl font-bold text-emerald-600">
-                    {formatPrice(monthlyPayment)}
-                  </span>
+                  <span className="block font-mono text-[9px] text-slate-400 uppercase font-semibold">Cuota Mensual Estimada</span>
+                  <span className="block font-sans text-xl font-bold text-emerald-600">{formatPrice(monthlyPayment)}</span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 text-[10px]">
+                <div className="grid grid-cols-3 gap-3 text-[10px]">
                   <div className="bg-white border border-slate-200 p-2.5">
                     <span className="block text-slate-400 font-mono text-[8px] uppercase">Financiado</span>
                     <span className="font-sans font-bold text-slate-800">{formatPrice(loanAmount)}</span>
@@ -610,64 +613,52 @@ export default function FloorPlanView({ apartment, onBackToMap, onOpenRoom }: Fl
                     <span className="block text-slate-400 font-mono text-[8px] uppercase">Total Interés</span>
                     <span className="font-sans font-bold text-slate-800">{formatPrice(totalInterest)}</span>
                   </div>
-                </div>
-
-                <div className="text-[10px] space-y-1 border-t border-slate-100 pt-2 font-mono text-slate-400">
-                  <div className="flex justify-between">
-                    <span>Precio de Lista:</span>
-                    <span className="text-slate-600 font-semibold">{formatPrice(price)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Costo Final:</span>
-                    <span className="text-slate-800 font-bold">{formatPrice(totalCost)}</span>
+                  <div className="bg-white border border-slate-200 p-2.5">
+                    <span className="block text-slate-400 font-mono text-[8px] uppercase">Costo Final</span>
+                    <span className="font-sans font-bold text-slate-800">{formatPrice(totalCost)}</span>
                   </div>
                 </div>
               </div>
             )}
-          </div>
         </div>
+
+        {/* Panel derecho: Tabla de amortización — solo cuando hay cálculo válido */}
+        {isValid && (
+          <div className="lg:col-span-7 bg-white/70 backdrop-blur-md border border-slate-200/80 rounded-none p-6 shadow-lg shadow-slate-100/50 space-y-4 animate-fade-in">
+            <div className="flex justify-between items-center border-b border-slate-200 pb-3">
+              <span className="font-mono text-[9px] text-slate-400 uppercase font-semibold">Amortización Mensual</span>
+              <span className="font-mono text-[9px] text-slate-400">{loanTermMonths} pagos</span>
+            </div>
+            <div className="overflow-x-auto max-h-[420px] overflow-y-auto">
+              <table className="w-full text-left border-collapse min-w-[420px]">
+                <thead className="bg-slate-100 sticky top-0 z-10 border-b border-slate-200">
+                  <tr className="font-mono text-[8px] text-slate-500 uppercase tracking-wider">
+                    <th className="px-3 py-2.5 text-center">Mes</th>
+                    <th className="px-3 py-2.5 text-right">Saldo Inicial</th>
+                    <th className="px-3 py-2.5 text-right">Cuota</th>
+                    <th className="px-3 py-2.5 text-right text-amber-700">Interés</th>
+                    <th className="px-3 py-2.5 text-right text-emerald-700">Capital</th>
+                    <th className="px-3 py-2.5 text-right">Saldo Final</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-[9px] font-mono text-slate-600">
+                  {amortizationSchedule.map((row) => (
+                    <tr key={row.month} className="hover:bg-slate-50/60">
+                      <td className="px-3 py-1.5 text-center font-bold text-slate-900">{row.month}</td>
+                      <td className="px-3 py-1.5 text-right">{formatPrice(row.startingBalance)}</td>
+                      <td className="px-3 py-1.5 text-right font-semibold text-slate-900">{formatPrice(row.payment)}</td>
+                      <td className="px-3 py-1.5 text-right text-amber-700">{formatPrice(row.interest)}</td>
+                      <td className="px-3 py-1.5 text-right text-emerald-700">{formatPrice(row.principal)}</td>
+                      <td className="px-3 py-1.5 text-right">{formatPrice(row.endingBalance)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
       </div>
-
-      {/* TABLA DE AMORTIZACIÓN */}
-      {isValid && (
-        <div className="bg-white/70 backdrop-blur-md border border-slate-200/80 rounded-none p-6 shadow-lg shadow-slate-100/40 space-y-4 animate-fade-in mt-6">
-          <div className="flex justify-between items-center border-b border-slate-200 pb-3">
-            <span className="font-sans text-[11px] font-bold text-slate-900 uppercase tracking-wider">
-              Tabla de Amortización Mensual
-            </span>
-            <span className="font-mono text-[10px] text-slate-400 uppercase font-semibold">
-              {loanTermMonths} Pagos
-            </span>
-          </div>
-          <div className="overflow-x-auto max-h-[350px] overflow-y-auto">
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-slate-100/60 sticky top-0 z-10 border-b border-slate-200">
-                <tr className="font-mono text-[9px] text-slate-500 uppercase tracking-wider">
-                  <th className="px-4 py-2.5 text-center">Mes</th>
-                  <th className="px-4 py-2.5 text-right">Saldo Pendiente</th>
-                  <th className="px-4 py-2.5 text-right">Cuota Total</th>
-                  <th className="px-4 py-2.5 text-right">Interés</th>
-                  <th className="px-4 py-2.5 text-right">Capital</th>
-                  <th className="px-4 py-2.5 text-right">Nuevo Saldo</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-[10px] font-mono text-slate-600">
-                {amortizationSchedule.map((row) => (
-                  <tr key={row.month} className="hover:bg-slate-50/50">
-                    <td className="px-4 py-2 text-center font-bold text-slate-900">{row.month}</td>
-                    <td className="px-4 py-2 text-right">{formatPrice(row.startingBalance)}</td>
-                    <td className="px-4 py-2 text-right text-slate-900 font-semibold">{formatPrice(row.payment)}</td>
-                    <td className="px-4 py-2 text-right text-amber-700">{formatPrice(row.interest)}</td>
-                    <td className="px-4 py-2 text-right text-emerald-700">{formatPrice(row.principal)}</td>
-                    <td className="px-4 py-2 text-right text-slate-800">{formatPrice(row.endingBalance)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
 
     </div>
   );
