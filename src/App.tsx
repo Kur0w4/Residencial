@@ -1,17 +1,26 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Apartment, Hotspot } from './types';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import HomePage from './components/HomePage';
-import ProjectsPage from './components/ProjectsPage';
-import ContactPage from './components/ContactPage';
-import PrivacyPage from './components/PrivacyPage';
-import ResidentialMap from './components/ResidentialMap';
-import TowerElevationView from './components/TowerElevationView';
-import FloorPlanView from './components/FloorPlanView';
-import RoomPhotoModal from './components/RoomPhotoModal';
 import { getTowerFromApartmentName, scrollToInteractiveContainer } from './utils/helpers';
+
+// Lazy load sub-views to optimize initial landing bundle size
+const ProjectsPage = lazy(() => import('./components/ProjectsPage'));
+const ContactPage = lazy(() => import('./components/ContactPage'));
+const PrivacyPage = lazy(() => import('./components/PrivacyPage'));
+const ResidentialMap = lazy(() => import('./components/ResidentialMap'));
+const TowerElevationView = lazy(() => import('./components/TowerElevationView'));
+const FloorPlanView = lazy(() => import('./components/FloorPlanView'));
+const RoomPhotoModal = lazy(() => import('./components/RoomPhotoModal'));
+
+// Premium, lightweight skeletal loader spinner for smooth lazy transitions
+const ViewLoader = () => (
+  <div className="flex items-center justify-center py-24 min-h-[400px]">
+    <div className="w-6 h-6 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></div>
+  </div>
+);
 
 export default function App() {
   // --- Estados de Navegación de Páginas ---
@@ -93,125 +102,129 @@ export default function App() {
 
       {/* Main Core View Area */}
       <main className="flex-1">
-        <AnimatePresence mode="wait">
-          {activePage === 'inicio' && (
-            <motion.div
-              key="inicio"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.3 }}
-            >
-              <HomePage onNavigateToProjects={() => handleNavigate('proyectos')} />
-            </motion.div>
-          )}
+        <Suspense fallback={<ViewLoader />}>
+          <AnimatePresence mode="wait">
+            {activePage === 'inicio' && (
+              <motion.div
+                key="inicio"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                transition={{ duration: 0.3 }}
+              >
+                <HomePage onNavigateToProjects={() => handleNavigate('proyectos')} />
+              </motion.div>
+            )}
 
-          {activePage === 'proyectos' && (
-            <motion.div
-              key="proyectos"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.3 }}
-            >
-              {!selectedProject ? (
-                <ProjectsPage onSelectProject={(id) => setSelectedProject(id)} />
-              ) : (
-                <section className="py-16 mx-auto max-w-7xl px-6" id="main-interactive-container">
-                  {/* Botón para regresar al catálogo de proyectos */}
-                  <button
-                    onClick={() => setSelectedProject(null)}
-                    className="mb-8 group flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-950 transition-colors cursor-pointer"
-                  >
-                    ← Volver a Desarrollos
-                  </button>
+            {activePage === 'proyectos' && (
+              <motion.div
+                key="proyectos"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                transition={{ duration: 0.3 }}
+              >
+                {!selectedProject ? (
+                  <ProjectsPage onSelectProject={(id) => setSelectedProject(id)} />
+                ) : (
+                  <section className="py-16 mx-auto max-w-7xl px-6" id="main-interactive-container">
+                    {/* Botón para regresar al catálogo de proyectos */}
+                    <button
+                      onClick={() => setSelectedProject(null)}
+                      className="mb-8 group flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-950 transition-colors cursor-pointer"
+                    >
+                      ← Volver a Desarrollos
+                    </button>
 
-                  <AnimatePresence mode="wait">
-                    {!selectedTower && !selectedApartment ? (
-                      <motion.div
-                        key="map-view"
-                        initial={{ opacity: 0, y: 15 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -15 }}
-                        transition={{ duration: 0.35, ease: 'easeInOut' }}
-                      >
-                        <ResidentialMap
-                          onSelectTower={handleSelectTower}
-                          onSelectApartment={handleSelectApartment}
-                        />
-                      </motion.div>
-                    ) : selectedTower && !selectedApartment ? (
-                      <motion.div
-                        key="tower-elevation-view"
-                        initial={{ opacity: 0, y: 15 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -15 }}
-                        transition={{ duration: 0.35, ease: 'easeInOut' }}
-                      >
-                        <TowerElevationView
-                          towerId={selectedTower}
-                          onBackToMap={handleBackToMap}
-                          onSelectApartment={handleSelectApartment}
-                        />
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="floor-plan-view"
-                        initial={{ opacity: 0, y: 15 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -15 }}
-                        transition={{ duration: 0.35, ease: 'easeInOut' }}
-                      >
-                        <FloorPlanView
-                          apartment={selectedApartment!}
-                          onBackToMap={handleBackToTower}
-                          onOpenRoom={handleOpenRoom}
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </section>
-              )}
-            </motion.div>
-          )}
+                    <AnimatePresence mode="wait">
+                      {!selectedTower && !selectedApartment ? (
+                        <motion.div
+                          key="map-view"
+                          initial={{ opacity: 0, y: 15 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -15 }}
+                          transition={{ duration: 0.35, ease: 'easeInOut' }}
+                        >
+                          <ResidentialMap
+                            onSelectTower={handleSelectTower}
+                            onSelectApartment={handleSelectApartment}
+                          />
+                        </motion.div>
+                      ) : selectedTower && !selectedApartment ? (
+                        <motion.div
+                          key="tower-elevation-view"
+                          initial={{ opacity: 0, y: 15 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -15 }}
+                          transition={{ duration: 0.35, ease: 'easeInOut' }}
+                        >
+                          <TowerElevationView
+                            towerId={selectedTower}
+                            onBackToMap={handleBackToMap}
+                            onSelectApartment={handleSelectApartment}
+                          />
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="floor-plan-view"
+                          initial={{ opacity: 0, y: 15 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -15 }}
+                          transition={{ duration: 0.35, ease: 'easeInOut' }}
+                        >
+                          <FloorPlanView
+                            apartment={selectedApartment!}
+                            onBackToMap={handleBackToTower}
+                            onOpenRoom={handleOpenRoom}
+                          />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </section>
+                )}
+              </motion.div>
+            )}
 
-          {activePage === 'contacto' && (
-            <motion.div
-              key="contacto"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.3 }}
-            >
-              <ContactPage />
-            </motion.div>
-          )}
+            {activePage === 'contacto' && (
+              <motion.div
+                key="contacto"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                transition={{ duration: 0.3 }}
+              >
+                <ContactPage />
+              </motion.div>
+            )}
 
-          {activePage === 'privacidad' && (
-            <motion.div
-              key="privacidad"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.3 }}
-            >
-              <PrivacyPage onBackToHome={() => handleNavigate('inicio')} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+            {activePage === 'privacidad' && (
+              <motion.div
+                key="privacidad"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                transition={{ duration: 0.3 }}
+              >
+                <PrivacyPage onBackToHome={() => handleNavigate('inicio')} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </Suspense>
       </main>
 
       {/* Cinematic Photorealistic Lightbox Modal */}
-      <AnimatePresence>
-        {activeRoomPhoto && selectedApartment && (
-          <RoomPhotoModal
-            hotspot={activeRoomPhoto}
-            allHotspots={selectedApartment.hotspots}
-            onClose={() => setActiveRoomPhoto(null)}
-            onNavigate={handleNavigateRoom}
-          />
-        )}
-      </AnimatePresence>
+      <Suspense fallback={null}>
+        <AnimatePresence>
+          {activeRoomPhoto && selectedApartment && (
+            <RoomPhotoModal
+              hotspot={activeRoomPhoto}
+              allHotspots={selectedApartment.hotspots}
+              onClose={() => setActiveRoomPhoto(null)}
+              onNavigate={handleNavigateRoom}
+            />
+          )}
+        </AnimatePresence>
+      </Suspense>
 
       {/* Modern Compact Real Estate Footer */}
       <Footer onNavigatePrivacy={() => handleNavigate('privacidad')} />
